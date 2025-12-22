@@ -9,6 +9,9 @@ import com.ldm.lluviaDeChuches.Pixmap;
 import com.ldm.lluviaDeChuches.Pantalla;
 
 public class PantallaJuego extends Pantalla {
+    private static final int HUD_OFFSET_Y = 10; // baja todo el HUD 10 px
+    private static final int HUD_HEIGHT = 35;
+
     enum EstadoJuego {
         Preparado,
         Ejecutandose,
@@ -156,7 +159,47 @@ public class PantallaJuego extends Pantalla {
             else if (estado == EstadoJuego.FinJuego)
                 drawGameOverUI();
 
-            drawText(g, puntuacion, g.getWidth() / 2 - puntuacion.length() * 20 / 2, g.getHeight() - 42);
+            // Puntuación en la esquina superior derecha, en NEGRITA y más grande
+            drawPuntuacionNegrita(g, puntuacion);
+        }
+    }
+
+    private void drawPuntuacionNegrita(Graficos g, String puntos) {
+        // Calcular posición en esquina superior derecha
+        int anchoPuntos = puntos.length() * 28; // Cada número ocupa ~28px
+        int x = g.getWidth() - anchoPuntos - 10; // 10px de margen derecho
+        int y = 20; // Cerca del borde superior
+
+        // Dibujar sombra/contorno para efecto negrita (dibuja 4 veces desplazado)
+        int colorSombra = Color.BLACK;
+        drawText(g, puntos, x + 1, y + 1, colorSombra);
+        drawText(g, puntos, x - 1, y + 1, colorSombra);
+        drawText(g, puntos, x + 1, y - 1, colorSombra);
+        drawText(g, puntos, x - 1, y - 1, colorSombra);
+
+        // Dibujar el texto principal en color brillante
+        drawText(g, puntos, x, y, Color.rgb(255, 215, 0)); // Dorado
+    }
+
+    public void drawText(Graficos g, String line, int x, int y, int color) {
+        // Dibuja texto con color personalizado usando los números del asset
+        for (int i = 0; i < line.length(); i++) {
+            char character = line.charAt(i);
+
+            int srcX;
+            int srcWidth;
+
+            if (character == '.') {
+                srcX = 327;
+                srcWidth = 15;
+            } else {
+                srcX = (character - '0') * 32;
+                srcWidth = 32;
+            }
+
+            // Aquí usarías tinting si estuviera disponible, pero por ahora usa el sprite original
+            g.drawPixmap(Assets.numeros, x, y, srcX, 0, srcWidth, 32);
+            x += srcWidth;
         }
     }
 
@@ -186,16 +229,26 @@ public class PantallaJuego extends Pantalla {
             }
         }
 
-        // Mostrar fallos restantes
+        int hudTop = HUD_OFFSET_Y;
+
+// Fondo del header
+        g.drawRect(
+                0,
+                hudTop,
+                g.getWidth(),
+                HUD_HEIGHT,
+                Color.argb(180, 0, 0, 0)
+        );
+
+// Fallos
         String fallosTexto = "Fallos: " + mundo.getObjetivosFallados() + "/" + mundo.getMaxFallos();
-        g.drawText(fallosTexto, 10, 50, Color.WHITE, 16, false);
+        g.drawText(fallosTexto, 10, hudTop + 25, Color.WHITE, 18, false);
 
-        // Indicador de modo
-        String modoTexto = modoExtremo ? "MODO EXTREMO" : "MODO NORMAL";
-        int colorModo = modoExtremo ? Color.RED : Color.GREEN;
-        g.drawText(modoTexto, g.getWidth() - 150, 50, colorModo, 14, false);
+// Modo
+        String modoTexto = modoExtremo ? "EXTREMO" : "NORMAL";
+        int colorModo = modoExtremo ? Color.rgb(255, 50, 50) : Color.rgb(100, 255, 100);
+        g.drawText(modoTexto, g.getWidth() / 2, hudTop + 25, colorModo, 18, true);
 
-        g.drawLine(0, 416, 480, 416, Color.rgb(10, 10, 80));
     }
 
     private void dibujarMira(Graficos g, int x, int y) {
@@ -243,35 +296,20 @@ public class PantallaJuego extends Pantalla {
 
     private void drawPausedUI() {
         Graficos g = juego.getGraphics();
-        g.drawPixmap(Assets.menupausa, 60, 120);
+
+        int x = 480 - Assets.menupausa.getWidth();
+        int y = 416 - Assets.menupausa.getHeight();
+
+        g.drawPixmap(Assets.menupausa, x, y);
         g.drawLine(0, 416, 480, 416, Color.BLACK);
     }
+
 
     private void drawGameOverUI() {
         Graficos g = juego.getGraphics();
         g.drawPixmap(Assets.finjuego, 36, 100);
         g.drawPixmap(Assets.botones, 128, 200, 5, 128, 66, 66);
         g.drawLine(0, 416, 480, 416, Color.BLACK);
-    }
-
-    public void drawText(Graficos g, String line, int x, int y) {
-        for (int i = 0; i < line.length(); i++) {
-            char character = line.charAt(i);
-
-            int srcX;
-            int srcWidth;
-
-            if (character == '.') {
-                srcX = 327;
-                srcWidth = 15;
-            } else {
-                srcX = (character - '0') * 32;
-                srcWidth = 32;
-            }
-
-            g.drawPixmap(Assets.numeros, x, y, srcX, 0, srcWidth, 32);
-            x += srcWidth;
-        }
     }
 
     @Override
