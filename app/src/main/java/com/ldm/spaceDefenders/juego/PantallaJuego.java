@@ -92,7 +92,7 @@ public class PantallaJuego extends Pantalla {
 
         if (mundo.finalJuego) {
             if (Configuraciones.sonidoHabilitado)
-                Assets.perder.play(1);
+                Assets.error.play(1);
             estado = EstadoJuego.FinJuego;
         }
 

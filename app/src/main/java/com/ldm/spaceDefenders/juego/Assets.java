@@ -27,12 +27,10 @@ public class Assets {
     public static Pixmap objetivo3;
     public static Pixmap objetivoEspecial;
 
-    public static Sonido clic;
-    public static Sonido error;
-    public static Sonido acierto;
-    public static Sonido fallo;
-    public static Sonido perder;
-    public static Sonido bonus;
+    // Sonidos que se mantienen
+    public static Sonido clic;      // Para clics en botones
+    public static Sonido error;     // Para cuando un objetivo llega al fondo
+    public static Sonido disparo;   // NUEVO: Para cada disparo
 
     public static Pixmap obtenerPixmapObjetivo(int tipo) {
         switch (tipo) {

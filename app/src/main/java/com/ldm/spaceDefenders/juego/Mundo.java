@@ -60,7 +60,7 @@ public class Mundo {
                 objetivosFallados++;
 
                 if (Configuraciones.sonidoHabilitado) {
-                    Assets.perder.play(1);
+                    Assets.error.play(1);
                 }
 
                 if (objetivosFallados >= maxFallos) {
@@ -80,6 +80,11 @@ public class Mundo {
     }
 
     public boolean dispararAObjetivo(int touchX, int touchY) {
+        // SIEMPRE reproducir el sonido de disparo, independientemente de si acierta o no
+        if (Configuraciones.sonidoHabilitado) {
+            Assets.disparo.play(1);
+        }
+
         for (int i = objetivos.size() - 1; i >= 0; i--) {
             Objetivo objetivo = objetivos.get(i);
 
@@ -94,21 +99,10 @@ public class Mundo {
                 puntuacion += puntos;
                 objetivos.remove(i);
 
-                if (Configuraciones.sonidoHabilitado) {
-                    if (objetivo.tipo == Objetivo.TIPO_4) {
-                        Assets.bonus.play(1);
-                    } else {
-                        Assets.acierto.play(1);
-                    }
-                }
-
                 return true;
             }
         }
 
-        if (Configuraciones.sonidoHabilitado) {
-            Assets.fallo.play(1);
-        }
         return false;
     }
 

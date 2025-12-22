@@ -38,11 +38,9 @@ public class LoadingScreen extends Pantalla{
 
         // Sonidos con nombres genéricos
         Assets.clic = juego.getAudio().nuevoSonido("clic.ogg");
-        Assets.acierto = juego.getAudio().nuevoSonido("comer.ogg");
-        Assets.error = juego.getAudio().nuevoSonido("platoroto.ogg");
-        Assets.fallo = juego.getAudio().nuevoSonido("asco.ogg");
-        Assets.perder = juego.getAudio().nuevoSonido("ains.ogg");
-        Assets.bonus = juego.getAudio().nuevoSonido("clink.ogg");
+        Assets.disparo = juego.getAudio().nuevoSonido("disparo.ogg");
+        Assets.error = juego.getAudio().nuevoSonido("ains.ogg");
+
 
         Configuraciones.cargar(juego.getFileIO());
         juego.setScreen(new MainMenuScreen(juego));
