@@ -1,0 +1,12 @@
+# Android / Gradle
+.gradle/
+gradle/caches/
+build/
+*/build/
+
+# Android Studio
+.idea/
+*.iml
+
+# Local config
+local.properties
