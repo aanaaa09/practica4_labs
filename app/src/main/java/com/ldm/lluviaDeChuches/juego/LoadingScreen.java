@@ -26,22 +26,23 @@ public class LoadingScreen extends Pantalla{
         Assets.preparadoE = g.newPixmap("preparadoE.png", PixmapFormat.ARGB4444);
         Assets.menupausa = g.newPixmap("menupausa.png", PixmapFormat.ARGB4444);
         Assets.finjuego = g.newPixmap("finjuego.png", PixmapFormat.ARGB4444);
-        Assets.nino = g.newPixmap("nino.png", PixmapFormat.ARGB4444);
+        Assets.jugador = g.newPixmap("nino.png", PixmapFormat.ARGB4444);
         Assets.aura = g.newPixmap("aura.png", PixmapFormat.ARGB4444);
-        Assets.cactus = g.newPixmap("cactus.png", PixmapFormat.ARGB4444);
-        Assets.sombrero = g.newPixmap("sombrero.png", PixmapFormat.ARGB4444);
-        Assets.mosca = g.newPixmap("mosca.png", PixmapFormat.ARGB4444);
+        Assets.obstaculo1 = g.newPixmap("cactus.png", PixmapFormat.ARGB4444);
+        Assets.obstaculo2 = g.newPixmap("sombrero.png", PixmapFormat.ARGB4444);
+        Assets.objetivoEspecial = g.newPixmap("mosca.png", PixmapFormat.ARGB4444);
         Assets.escudo = g.newPixmap("escudo.png", PixmapFormat.ARGB4444);
-        Assets.caramelo = g.newPixmap("caramelo.png", PixmapFormat.ARGB4444);
-        Assets.piruleta = g.newPixmap("piruleta.png", PixmapFormat.ARGB4444);
-        Assets.copa = g.newPixmap("copa.png", PixmapFormat.ARGB4444);
-        Assets.clic = juego.getAudio().nuevoSonido("clic.ogg");
-        Assets.comer = juego.getAudio().nuevoSonido("comer.ogg");
-        Assets.platoroto = juego.getAudio().nuevoSonido("platoroto.ogg");
-        Assets.asco = juego.getAudio().nuevoSonido("asco.ogg");
-        Assets.ains = juego.getAudio().nuevoSonido("ains.ogg");
-        Assets.clink = juego.getAudio().nuevoSonido("clink.ogg");
+        Assets.objetivo1 = g.newPixmap("caramelo.png", PixmapFormat.ARGB4444);
+        Assets.objetivo2 = g.newPixmap("piruleta.png", PixmapFormat.ARGB4444);
+        Assets.objetivo3 = g.newPixmap("copa.png", PixmapFormat.ARGB4444);
 
+        // Sonidos con nombres genéricos
+        Assets.clic = juego.getAudio().nuevoSonido("clic.ogg");
+        Assets.acierto = juego.getAudio().nuevoSonido("comer.ogg");
+        Assets.error = juego.getAudio().nuevoSonido("platoroto.ogg");
+        Assets.fallo = juego.getAudio().nuevoSonido("asco.ogg");
+        Assets.perder = juego.getAudio().nuevoSonido("ains.ogg");
+        Assets.bonus = juego.getAudio().nuevoSonido("clink.ogg");
 
         Configuraciones.cargar(juego.getFileIO());
         juego.setScreen(new MainMenuScreen(juego));
@@ -56,7 +57,6 @@ public class LoadingScreen extends Pantalla{
     public void pause() {
 
     }
-
 
     @Override
     public void resume() {

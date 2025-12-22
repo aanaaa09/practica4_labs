@@ -27,30 +27,32 @@ public class MainMenuScreen extends Pantalla {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
                 }
-                // Juego normal
+                // Modo Normal
                 if (inBounds(event, 50 + 16, 270, 205, 31)) {
                     juego.setScreen(new PantallaJuego(juego, false));
                     if (Configuraciones.sonidoHabilitado) {
                         Assets.clic.play(1);
                     }
-
                     return;
                 }
 
-                // Juego extremo
-                if (inBounds(event, 50, 280 + 25, 222, 23)) { // Ajusta las coordenadas según el diseño
-                    juego.setScreen(new PantallaJuego(juego, true)); // Modo extremo
+                // Modo Extremo
+                if (inBounds(event, 50, 280 + 25, 222, 23)) {
+                    juego.setScreen(new PantallaJuego(juego, true));
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
                     return;
                 }
 
+                // Puntuaciones
                 if (inBounds(event, 50 + 7, 280 + 50, 210, 21)) {
                     juego.setScreen(new PantallaMaximasPuntuaciones(juego));
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
                     return;
                 }
+
+                // Ayuda
                 if (inBounds(event, 50 + 48, 280 + 70, 132, 40)) {
                     juego.setScreen(new PantallaAyuda(juego));
                     if (Configuraciones.sonidoHabilitado)
@@ -70,30 +72,23 @@ public class MainMenuScreen extends Pantalla {
     public void present(float deltaTime) {
         Graficos g = juego.getGraphics();
 
-        // Dibujar el fondo primero
         g.drawPixmap(Assets.fondo, 0, 0);
 
-        // Dibujar Toolbar encima del fondo
         int toolbarHeight = 40;
-        int toolbarColor = 0xFFD2B48C; // Marrón oscuro visible (formato ARGB)
+        int toolbarColor = 0xFFD2B48C;
 
-        // Dibujar rectángulo del toolbar
         g.drawRect(0, 0, g.getWidth(), toolbarHeight, toolbarColor);
 
-
-        // Dibujar texto del toolbar
-        String tituloToolbar = "Lluvia de CHUCHES";
-        int textColor = 0xFFFFFFFF; // Blanco
-        int textSize = 20;          // Tamaño del texto
-        int textY = toolbarHeight / 2 + textSize / 2 - 5; // Centrar verticalmente
+        String tituloToolbar = "JUEGO DE DISPAROS";
+        int textColor = 0xFFFFFFFF;
+        int textSize = 20;
+        int textY = toolbarHeight / 2 + textSize / 2 - 5;
 
         g.drawText(tituloToolbar, g.getWidth() / 2, textY, textColor, textSize, true);
 
-        // Dibujar el resto del menú
         g.drawPixmap(Assets.logo, 57, 40);
         g.drawPixmap(Assets.menu, 50, 280);
 
-        // Dibujar botón de sonido
         if (Configuraciones.sonidoHabilitado)
             g.drawPixmap(Assets.botones, 5, g.getHeight() - 70, 5, 2, 66, 64);
         else

@@ -25,9 +25,8 @@ public class PantallaJuego extends Pantalla {
     public PantallaJuego(Juego juego, boolean modoExtremo) {
         super(juego);
         this.modoExtremo = modoExtremo;
-        mundo = new Mundo(modoExtremo); // Inicializamos el mundo con el modo especificado
+        mundo = new Mundo(modoExtremo);
     }
-
 
     @Override
     public void update(float deltaTime) {
@@ -53,37 +52,32 @@ public class PantallaJuego extends Pantalla {
     private void updateRunning(List<TouchEvent> touchEvents, float deltaTime) {
         for (TouchEvent event : touchEvents) {
             if (event.type == TouchEvent.TOUCH_UP) {
-                if (event.x < 64 && event.y < 64) { // Botón de pausa
+                // Botón de pausa
+                if (event.x < 64 && event.y < 64) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
                     estado = EstadoJuego.Pausado;
                     return;
                 }
-            } else if (event.type == TouchEvent.TOUCH_DOWN) {
-                if (event.x < 64 && event.y > 416) {
-                    mundo.jollyroger.moverIzquierda();
-                } else if (event.x > 256 && event.y > 416) {
-                    mundo.jollyroger.moverDerecha(Mundo.MUNDO_ANCHO);
+
+                // Disparar a objetivos (solo si no es el botón de pausa)
+                if (event.y >= 64) {
+                    mundo.dispararAObjetivo(event.x, event.y);
                 }
             }
         }
 
-        // Actualizar el mundo
         mundo.update(deltaTime);
 
-        // Verificar si el juego ha terminado
         if (mundo.finalJuego) {
             if (Configuraciones.sonidoHabilitado)
-                Assets.ains.play(1);
+                Assets.perder.play(1);
             estado = EstadoJuego.FinJuego;
         }
 
-        // Actualizar puntuación
         if (antiguaPuntuacion != mundo.puntuacion) {
             antiguaPuntuacion = mundo.puntuacion;
             puntuacion = String.valueOf(antiguaPuntuacion);
-            if (Configuraciones.sonidoHabilitado && !mundo.moscaFueComida())
-                Assets.comer.play(1);
         }
     }
 
@@ -126,7 +120,7 @@ public class PantallaJuego extends Pantalla {
         Graficos g = juego.getGraphics();
 
         if (g != null) {
-            g.drawPixmap(Assets.fondo, 0, 0); // Dibuja el fondo
+            g.drawPixmap(Assets.fondo, 0, 0);
             drawWorld(mundo);
 
             if (estado == EstadoJuego.Preparado)
@@ -145,31 +139,39 @@ public class PantallaJuego extends Pantalla {
     private void drawWorld(Mundo mundo) {
         Graficos g = juego.getGraphics();
 
-        // Dibujar los ingredientes
-        for (Ingredientes ingrediente : mundo.ingredientes) {
-            Pixmap ingredientePixmap = Assets.obtenerPixmapIngrediente(ingrediente.tipo);
-            g.drawPixmap(ingredientePixmap, ingrediente.x * 32, ingrediente.y * 32);
+        // Dibujar los objetivos en posiciones fijas
+        for (int i = 0; i < mundo.objetivos.size(); i++) {
+            Objetivo objetivo = mundo.objetivos.get(i);
+            Pixmap objetivoPixmap = Assets.obtenerPixmapObjetivo(objetivo.tipo);
+
+            int objetivoX = objetivo.x * 32;
+            int objetivoY = 80 + (i * 50);
+
+            g.drawPixmap(objetivoPixmap, objetivoX, objetivoY);
+
+            // Dibujar barra de tiempo restante
+            float tiempoRestante = mundo.getTiempoRestanteObjetivo(i);
+            float porcentaje = tiempoRestante / 3.0f; // 3 segundos máximo
+            int anchoBarra = (int)(32 * porcentaje);
+
+            int colorBarra;
+            if (porcentaje > 0.6f) {
+                colorBarra = Color.GREEN;
+            } else if (porcentaje > 0.3f) {
+                colorBarra = Color.YELLOW;
+            } else {
+                colorBarra = Color.RED;
+            }
+
+            g.drawRect(objetivoX, objetivoY - 5, anchoBarra, 3, colorBarra);
         }
 
-        for (Ingredientes mosca : mundo.getMoscas()) {
-            g.drawPixmap(Assets.mosca, mosca.x * 32, mosca.y * 32);
-        }
-
-        // Dibujar los obstáculos
-        for (Obstaculo obstaculo : mundo.getObstaculos()) {
-            Pixmap obstaculoPixmap = Assets.obtenerPixmapObstaculo(obstaculo.tipo);
-            g.drawPixmap(obstaculoPixmap, obstaculo.x * 32, obstaculo.y * 32);
-        }
-
-        g.drawPixmap(Assets.nino, mundo.jollyroger.x * 32, mundo.jollyroger.y * 32);
-        // Dibujar el aura si el escudo está activo
-        if (mundo.esEscudoActivo()) {
-            g.drawPixmap(Assets.aura, mundo.jollyroger.x * 32, mundo.jollyroger.y * 32);
-        }
+        // Mostrar fallos restantes
+        String fallosTexto = "Fallos: " + mundo.getObjetivosFallados() + "/" + mundo.getMaxFallos();
+        g.drawText(fallosTexto, 10, 50, Color.WHITE, 16, false);
 
         g.drawLine(0, 416, 480, 416, Color.rgb(10, 10, 80));
     }
-
 
     private void drawReadyUI() {
         Graficos g = juego.getGraphics();
@@ -180,8 +182,6 @@ public class PantallaJuego extends Pantalla {
     private void drawRunningUI() {
         Graficos g = juego.getGraphics();
         g.drawPixmap(Assets.botones, 0, 0, 68, 128, 64, 64); // Botón de pausa
-        g.drawPixmap(Assets.botones, 0, 416, 68, 64, 66, 66); // Botón izquierdo
-        g.drawPixmap(Assets.botones, 256, 416, 5, 64, 66, 66); // Botón derecho
     }
 
     private void drawPausedUI() {

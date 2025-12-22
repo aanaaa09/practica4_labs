@@ -9,20 +9,15 @@ public class Mundo {
     static final int MUNDO_ALTO = 13;
     static final float TICK_INICIAL = 0.7f;
 
-    private float tiempoProximoIngrediente = 1.5f;
-    private float tiempoProximaMosca = 2.0f;
-    private float tiempoProximoObstaculo = 2.5f;
-    private boolean escudoActivo = false;
-    private float tiempoEscudoRestante = 0;
+    private float tiempoProximoObjetivo = 1.5f;
+    private float tiempoVidaObjetivo = 3.0f;
 
-    public JollyRoger jollyroger;
-    public List<Ingredientes> ingredientes = new ArrayList<>();
+    public List<Objetivo> objetivos = new ArrayList<>();
     public boolean finalJuego = false;
     public int puntuacion = 0;
 
-    private List<Obstaculo> obstaculos = new ArrayList<>();
-    private List<Ingredientes> moscas = new ArrayList<>();
-    private boolean moscaComida = false;
+    private int objetivosFallados = 0;
+    private int maxFallos = 5;
 
     private Random random = new Random();
     private boolean modoExtremo;
@@ -32,330 +27,139 @@ public class Mundo {
 
     public Mundo(boolean modoExtremo) {
         this.modoExtremo = modoExtremo;
-        jollyroger = new JollyRoger(MUNDO_ANCHO);
-        colocarIngredientes();
-    }
-
-    public List<Obstaculo> getObstaculos() {
-        return obstaculos;
-    }
-
-    public List<Ingredientes> getMoscas() {
-        return moscas;
+        this.maxFallos = modoExtremo ? 3 : 5;
+        colocarObjetivos();
     }
 
     public void update(float deltaTime) {
         if (finalJuego) return;
 
         tiempoTick += deltaTime;
+        tiempoProximoObjetivo -= deltaTime;
 
-        // Reducir temporizadores para generación progresiva (solo en modo extremo)
-        if (modoExtremo) {
-            tiempoProximoIngrediente -= deltaTime;
-            tiempoProximaMosca -= deltaTime;
-            tiempoProximoObstaculo -= deltaTime;
-        }
+        // Actualizar tiempo de vida de cada objetivo
+        for (int i = objetivos.size() - 1; i >= 0; i--) {
+            Objetivo objetivo = objetivos.get(i);
 
-        // Reducir el tiempo del escudo si está activo
-        if (escudoActivo) {
-            tiempoEscudoRestante -= deltaTime;
-            if (tiempoEscudoRestante <= 0) {
-                escudoActivo = false;
-            }
-        }
-
-        while (tiempoTick > tick) {
-            tiempoTick -= tick;
-
-            moverObjetos();
-
-            // Verificar si algún ingrediente toca el suelo
-            for (int i = ingredientes.size() - 1; i >= 0; i--) {
-                Ingredientes ingrediente = ingredientes.get(i);
-
-                if (ingrediente.y >= MUNDO_ALTO) {
-                    if (ingrediente.tipo == Ingredientes.TIPO_4) {
-
-                        ingredientes.remove(i);
-                    } else if (escudoActivo) {
-
-                        ingredientes.remove(i);
-                    } else {
-
-                        finalJuego = true;
-                        return;
-                    }
-                }
+            if (objetivo.y == 0) {
+                objetivo.y = (int)(tiempoVidaObjetivo * 1000);
             }
 
-            moscas.removeIf(mosca -> mosca.y >= MUNDO_ALTO);
+            objetivo.y -= (int)(deltaTime * 1000);
 
-            moscas.removeIf(mosca -> mosca.y >= MUNDO_ALTO);
-            obstaculos.removeIf(obstaculo -> obstaculo.y >= MUNDO_ALTO);
+            if (objetivo.y <= 0) {
+                objetivos.remove(i);
+                objetivosFallados++;
 
-            detectarColisiones();
-
-            if (modoExtremo) {
-
-                if (ingredientes.size() < 3 && tiempoProximoIngrediente <= 0) {
-                    colocarIngredientes();
-                    tiempoProximoIngrediente = 1.5f;
+                if (Configuraciones.sonidoHabilitado) {
+                    Assets.perder.play(1);
                 }
 
-                if (moscas.size() < 2 && tiempoProximaMosca <= 0) {
-                    generarMosca();
-                    tiempoProximaMosca = 2.0f;
-                }
-
-                if (obstaculos.size() < 2 && tiempoProximoObstaculo <= 0) {
-                    generarObstaculo();
-                    tiempoProximoObstaculo = 2.5f;
-                }
-            } else {
-                if (ingredientes.isEmpty()) {
-                    colocarIngredientes();
-                }
-
-                if (moscas.isEmpty() && random.nextInt(100) < 10) { // 10% probabilidad
-                    generarMosca();
-                }
-
-                if (obstaculos.isEmpty() && random.nextInt(100) < 5) { // 5% probabilidad
-                    generarObstaculo();
-                }
-            }
-
-            ajustarVelocidad();
-        }
-    }
-
-
-
-
-    private void moverObjetos() {
-        for (Ingredientes ingrediente : ingredientes) {
-            ingrediente.y += 1;
-        }
-
-        for (Ingredientes mosca : moscas) {
-            mosca.y += 1;
-        }
-
-        for (Obstaculo obstaculo : obstaculos) {
-            obstaculo.y += 1;
-        }
-    }
-
-    private boolean rectangulosSeSuperponen(int x1, int y1, int ancho1, int alto1, int x2, int y2, int ancho2, int alto2) {
-        return x1 < x2 + ancho2 && x1 + ancho1 > x2 && y1 < y2 + alto2 && y1 + alto1 > y2;
-    }
-
-
-    private void detectarColisiones() {
-        int ninoX = jollyroger.x * 32;
-        int ninoY = jollyroger.y * 32;
-        int ninoAncho = 32;
-        int ninoAlto = 32;
-
-        for (int i = ingredientes.size() - 1; i >= 0; i--) {
-            Ingredientes ingrediente = ingredientes.get(i);
-
-            // Definir las dimensiones del ingrediente
-            int ingredienteX = ingrediente.x * 32;
-            int ingredienteY = ingrediente.y * 32;
-            int ingredienteAncho = 32;
-            int ingredienteAlto = 32;
-
-            // Comprobar si las áreas del chef y el ingrediente se superponen
-            if (rectangulosSeSuperponen(ninoX, ninoY, ninoAncho, ninoAlto, ingredienteX, ingredienteY, ingredienteAncho, ingredienteAlto)) {
-                manejarIngredientes(i);
-            }
-        }
-
-        for (int i = moscas.size() - 1; i >= 0; i--) {
-            Ingredientes mosca = moscas.get(i);
-
-            int moscaX = mosca.x * 32;
-            int moscaY = mosca.y * 32;
-            int moscaAncho = 32;
-            int moscaAlto = 32;
-
-            // Comprobar si las áreas del chef y la mosca se superponen
-            if (rectangulosSeSuperponen(ninoX, ninoY, ninoAncho, ninoAlto, moscaX, moscaY, moscaAncho, moscaAlto)) {
-                if (!escudoActivo) {
-                    manejarMosca(i);
-                } else {
-                    moscas.remove(i);
-                }
-            }
-        }
-
-        // Verificar colisiones con obstáculos
-        for (int i = obstaculos.size() - 1; i >= 0; i--) {
-            Obstaculo obstaculo = obstaculos.get(i);
-
-            // Definir las dimensiones del obstáculo
-            int obstaculoX = obstaculo.x * 32;
-            int obstaculoY = obstaculo.y * 32;
-            int obstaculoAncho = 32;
-            int obstaculoAlto = 32;
-
-            // Comprobar si las áreas del chef y el obstáculo se superponen
-            if (rectangulosSeSuperponen(ninoX, ninoY, ninoAncho, ninoAlto, obstaculoX, obstaculoY, obstaculoAncho, obstaculoAlto)) {
-                if (!escudoActivo) {
+                if (objetivosFallados >= maxFallos) {
                     finalJuego = true;
                     return;
-                } else {
-                    obstaculos.remove(i);
                 }
             }
         }
+
+        // Generar nuevos objetivos
+        if (tiempoProximoObjetivo <= 0 && objetivos.size() < (modoExtremo ? 6 : 4)) {
+            colocarObjetivos();
+            tiempoProximoObjetivo = modoExtremo ? 0.8f : 1.2f;
+        }
+
+        ajustarVelocidad();
     }
 
+    public boolean dispararAObjetivo(int touchX, int touchY) {
+        for (int i = objetivos.size() - 1; i >= 0; i--) {
+            Objetivo objetivo = objetivos.get(i);
 
-    private void manejarIngredientes(int index) {
-        Ingredientes ingrediente = ingredientes.get(index);
+            int objetivoX = objetivo.x * 32;
+            int objetivoY_pantalla = 80 + (i * 50);
 
-        switch (ingrediente.tipo) {
-            case Ingredientes.TIPO_1:
-                puntuacion += 5;
-                break;
-            case Ingredientes.TIPO_2:
-                puntuacion += 10;
-                break;
-            case Ingredientes.TIPO_3:
-                puntuacion += 15;
-                break;
-            case Ingredientes.TIPO_4:
-                activarEscudo(5);
+            if (touchX >= objetivoX && touchX <= objetivoX + 32 &&
+                    touchY >= objetivoY_pantalla && touchY <= objetivoY_pantalla + 32) {
+
+                int puntos = calcularPuntos(objetivo.tipo);
+                puntuacion += puntos;
+                objetivos.remove(i);
+
                 if (Configuraciones.sonidoHabilitado) {
-                    Assets.clink.play(1);
+                    if (objetivo.tipo == Objetivo.TIPO_4) {
+                        Assets.bonus.play(1);
+                    } else {
+                        Assets.acierto.play(1);
+                    }
                 }
-                break;
+
+                return true;
+            }
         }
 
-        ingredientes.remove(index);
-    }
-
-    public void activarEscudo(float duracion) {
-        escudoActivo = true;
-        tiempoEscudoRestante = duracion;
-    }
-
-    public boolean esEscudoActivo() {
-        return escudoActivo;
-    }
-
-    public boolean moscaFueComida() {
-        boolean fueComido = moscaComida;
-        moscaComida = false;
-        return fueComido;
-    }
-
-    private void manejarMosca(int index) {
-        puntuacion -= 5;
-        if (puntuacion < 0) puntuacion = 0;
-        moscas.remove(index);
-        moscaComida = true;
         if (Configuraciones.sonidoHabilitado) {
-            Assets.asco.play(1);
+            Assets.fallo.play(1);
         }
-    }
-
-    private boolean camposOcupados(int x, int y) {
-
-        for (Ingredientes ingrediente : ingredientes) {
-            if (ingrediente.x == x && ingrediente.y == y) {
-                return true;
-            }
-        }
-
-        for (Ingredientes mosca : moscas) {
-            if (mosca.x == x && mosca.y == y) {
-                return true;
-            }
-        }
-        for (Obstaculo obstaculo : obstaculos) {
-            if (obstaculo.x == x && obstaculo.y == y) {
-                return true;
-            }
-        }
-
         return false;
     }
 
-    private void generarMosca() {
-        int moscaX, moscaY;
-        int intentos = 0;
-
-        do {
-            moscaX = random.nextInt(MUNDO_ANCHO);
-            moscaY = 0;
-            intentos++;
-        } while (camposOcupados(moscaX, moscaY) && intentos < 100);
-
-        if (intentos >= 100) {
-            return;
+    private int calcularPuntos(int tipo) {
+        switch (tipo) {
+            case Objetivo.TIPO_1: return 5;
+            case Objetivo.TIPO_2: return 10;
+            case Objetivo.TIPO_3: return 15;
+            case Objetivo.TIPO_4: return 25;
+            default: return 5;
         }
-
-        Ingredientes nuevoMosca = new Ingredientes(moscaX, moscaY, Ingredientes.TIPO_MOSCA);
-        moscas.add(nuevoMosca);
     }
 
-    private void generarObstaculo() {
-        int obstaculoX, obstaculoY;
-        int intentos = 0;
-
-        do {
-            obstaculoX = random.nextInt(MUNDO_ANCHO);
-            obstaculoY = 0;
-            intentos++;
-        } while (camposOcupados(obstaculoX, obstaculoY) && intentos < 100);
-
-        // Si no se encontró una posición válida después de 100 intentos, no se genera el obstáculo
-        if (intentos >= 100) {
-            return;
-        }
-
-        int tipo = random.nextInt(2) + 1;
-        Obstaculo nuevoObstaculo = new Obstaculo(obstaculoX, obstaculoY, tipo);
-        obstaculos.add(nuevoObstaculo);
-    }
-
-    private void colocarIngredientes() {
+    private void colocarObjetivos() {
         int x = random.nextInt(MUNDO_ANCHO);
 
         int probabilidad = random.nextInt(100);
-        int tipoIngrediente;
+        int tipoObjetivo;
 
         if (probabilidad < 50) {
-            tipoIngrediente = Ingredientes.TIPO_1; // 50% de probabilidad
+            tipoObjetivo = Objetivo.TIPO_1;
         } else if (probabilidad < 75) {
-            tipoIngrediente = Ingredientes.TIPO_2; // 25% de probabilidad
+            tipoObjetivo = Objetivo.TIPO_2;
         } else if (probabilidad < 90) {
-            tipoIngrediente = Ingredientes.TIPO_3; // 15% de probabilidad
+            tipoObjetivo = Objetivo.TIPO_3;
         } else {
-            tipoIngrediente = Ingredientes.TIPO_4; // 10% de probabilidad
+            tipoObjetivo = Objetivo.TIPO_4;
         }
 
-        ingredientes.add(new Ingredientes(x, 0, tipoIngrediente));
+        objetivos.add(new Objetivo(x, 0, tipoObjetivo));
     }
-
 
     private void ajustarVelocidad() {
         if (modoExtremo) {
-            if (puntuacion == 20 && tick > 0.2f) {
-                tick -= 0.02f;
-            } else if (puntuacion == 60 && tick > 0.2f) {
-                tick -= 0.03f;
+            if (puntuacion >= 50 && tiempoVidaObjetivo > 2.0f) {
+                tiempoVidaObjetivo = 2.0f;
+            } else if (puntuacion >= 100 && tiempoVidaObjetivo > 1.5f) {
+                tiempoVidaObjetivo = 1.5f;
             }
         } else {
-            if (puntuacion == 40 && tick > 0.3f) {
-                tick -= 0.02f;
-            } else if (puntuacion == 80 && tick > 0.2f) {
-                tick -= 0.03f;
+            if (puntuacion >= 80 && tiempoVidaObjetivo > 2.5f) {
+                tiempoVidaObjetivo = 2.5f;
+            } else if (puntuacion >= 150 && tiempoVidaObjetivo > 2.0f) {
+                tiempoVidaObjetivo = 2.0f;
             }
         }
+    }
 
+    public int getObjetivosFallados() {
+        return objetivosFallados;
+    }
+
+    public int getMaxFallos() {
+        return maxFallos;
+    }
+
+    public float getTiempoRestanteObjetivo(int index) {
+        if (index >= 0 && index < objetivos.size()) {
+            return objetivos.get(index).y / 1000.0f;
+        }
+        return 0;
     }
 }

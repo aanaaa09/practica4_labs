@@ -17,35 +17,35 @@ public class Assets {
     public static Pixmap preparadoN;
     public static Pixmap menupausa;
     public static Pixmap finjuego;
-    public static Pixmap nino;
+    public static Pixmap jugador;
     public static Pixmap aura;
-    public static Pixmap cactus;
-    public static Pixmap sombrero;
+    public static Pixmap obstaculo1;
+    public static Pixmap obstaculo2;
     public static Pixmap escudo;
-    public static Pixmap copa;
-    public static Pixmap piruleta;
-    public static Pixmap caramelo;
-    public static Pixmap mosca;
+    public static Pixmap objetivo1;
+    public static Pixmap objetivo2;
+    public static Pixmap objetivo3;
+    public static Pixmap objetivoEspecial;
 
     public static Sonido clic;
-    public static Sonido platoroto;
-    public static Sonido comer;
-    public static Sonido asco;
-    public static Sonido ains;
-    public static Sonido clink;
+    public static Sonido error;
+    public static Sonido acierto;
+    public static Sonido fallo;
+    public static Sonido perder;
+    public static Sonido bonus;
 
-    public static Pixmap obtenerPixmapIngrediente(int tipo) {
+    public static Pixmap obtenerPixmapObjetivo(int tipo) {
         switch (tipo) {
-            case Ingredientes.TIPO_1:
-                return Assets.caramelo;
-            case Ingredientes.TIPO_2:
-                return Assets.piruleta;
-            case Ingredientes.TIPO_3:
-                return Assets.copa;
-            case Ingredientes.TIPO_4:
+            case Objetivo.TIPO_1:
+                return Assets.objetivo1;
+            case Objetivo.TIPO_2:
+                return Assets.objetivo2;
+            case Objetivo.TIPO_3:
+                return Assets.objetivo3;
+            case Objetivo.TIPO_4:
                 return Assets.escudo;
-            case Ingredientes.TIPO_MOSCA:
-                return Assets.mosca;
+            case Objetivo.TIPO_ESPECIAL:
+                return Assets.objetivoEspecial;
             default:
                 return null;
         }
@@ -54,12 +54,11 @@ public class Assets {
     public static Pixmap obtenerPixmapObstaculo(int tipo) {
         switch (tipo) {
             case 1:
-                return Assets.cactus;
+                return Assets.obstaculo1;
             case 2:
-                return Assets.sombrero;
+                return Assets.obstaculo2;
             default:
                 return null;
         }
     }
-
 }
