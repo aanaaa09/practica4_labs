@@ -9,6 +9,8 @@ public class Mundo {
     static final int MUNDO_ALTO = 13;
     static final float TICK_INICIAL = 0.7f;
 
+    // Velocidad de caída de objetivos (píxeles por segundo)
+    private float velocidadCaida;
     private float tiempoProximoObjetivo = 1.5f;
     private float tiempoVidaObjetivo = 3.0f;
 
@@ -25,9 +27,17 @@ public class Mundo {
     float tiempoTick = 0;
     static float tick = TICK_INICIAL;
 
+    // Altura máxima de la pantalla de juego (en píxeles)
+    private static final int ALTURA_JUEGO = 416;
+
     public Mundo(boolean modoExtremo) {
         this.modoExtremo = modoExtremo;
         this.maxFallos = modoExtremo ? 3 : 5;
+
+        // Velocidad de caída según el modo
+        this.velocidadCaida = modoExtremo ? 120.0f : 80.0f; // píxeles/segundo
+        this.tiempoVidaObjetivo = modoExtremo ? 2.5f : 3.5f;
+
         colocarObjetivos();
     }
 
@@ -37,17 +47,15 @@ public class Mundo {
         tiempoTick += deltaTime;
         tiempoProximoObjetivo -= deltaTime;
 
-        // Actualizar tiempo de vida de cada objetivo
+        // Actualizar posición Y (caída) de cada objetivo
         for (int i = objetivos.size() - 1; i >= 0; i--) {
             Objetivo objetivo = objetivos.get(i);
 
-            if (objetivo.y == 0) {
-                objetivo.y = (int)(tiempoVidaObjetivo * 1000);
-            }
+            // Hacer caer el objetivo (y representa la posición vertical en píxeles)
+            objetivo.y += (int)(velocidadCaida * deltaTime);
 
-            objetivo.y -= (int)(deltaTime * 1000);
-
-            if (objetivo.y <= 0) {
+            // Si el objetivo llegó al fondo de la pantalla
+            if (objetivo.y >= ALTURA_JUEGO) {
                 objetivos.remove(i);
                 objetivosFallados++;
 
@@ -63,9 +71,9 @@ public class Mundo {
         }
 
         // Generar nuevos objetivos
-        if (tiempoProximoObjetivo <= 0 && objetivos.size() < (modoExtremo ? 6 : 4)) {
+        if (tiempoProximoObjetivo <= 0 && objetivos.size() < (modoExtremo ? 5 : 3)) {
             colocarObjetivos();
-            tiempoProximoObjetivo = modoExtremo ? 0.8f : 1.2f;
+            tiempoProximoObjetivo = modoExtremo ? 0.6f : 1.0f;
         }
 
         ajustarVelocidad();
@@ -76,10 +84,11 @@ public class Mundo {
             Objetivo objetivo = objetivos.get(i);
 
             int objetivoX = objetivo.x * 32;
-            int objetivoY_pantalla = 80 + (i * 50);
+            int objetivoY = objetivo.y;
 
+            // Área de colisión del objetivo (32x32 píxeles)
             if (touchX >= objetivoX && touchX <= objetivoX + 32 &&
-                    touchY >= objetivoY_pantalla && touchY <= objetivoY_pantalla + 32) {
+                    touchY >= objetivoY && touchY <= objetivoY + 32) {
 
                 int puntos = calcularPuntos(objetivo.tipo);
                 puntuacion += puntos;
@@ -129,21 +138,22 @@ public class Mundo {
             tipoObjetivo = Objetivo.TIPO_4;
         }
 
+        // Crear objetivo en la parte superior (y = 0)
         objetivos.add(new Objetivo(x, 0, tipoObjetivo));
     }
 
     private void ajustarVelocidad() {
         if (modoExtremo) {
-            if (puntuacion >= 50 && tiempoVidaObjetivo > 2.0f) {
-                tiempoVidaObjetivo = 2.0f;
-            } else if (puntuacion >= 100 && tiempoVidaObjetivo > 1.5f) {
-                tiempoVidaObjetivo = 1.5f;
+            if (puntuacion >= 50 && velocidadCaida < 150.0f) {
+                velocidadCaida = 150.0f;
+            } else if (puntuacion >= 100 && velocidadCaida < 180.0f) {
+                velocidadCaida = 180.0f;
             }
         } else {
-            if (puntuacion >= 80 && tiempoVidaObjetivo > 2.5f) {
-                tiempoVidaObjetivo = 2.5f;
-            } else if (puntuacion >= 150 && tiempoVidaObjetivo > 2.0f) {
-                tiempoVidaObjetivo = 2.0f;
+            if (puntuacion >= 80 && velocidadCaida < 100.0f) {
+                velocidadCaida = 100.0f;
+            } else if (puntuacion >= 150 && velocidadCaida < 120.0f) {
+                velocidadCaida = 120.0f;
             }
         }
     }
@@ -156,10 +166,8 @@ public class Mundo {
         return maxFallos;
     }
 
-    public float getTiempoRestanteObjetivo(int index) {
-        if (index >= 0 && index < objetivos.size()) {
-            return objetivos.get(index).y / 1000.0f;
-        }
-        return 0;
+    // Obtener el porcentaje de progreso de caída (0.0 a 1.0)
+    public float getPorcentajeCaida(Objetivo objetivo) {
+        return (float) objetivo.y / ALTURA_JUEGO;
     }
 }

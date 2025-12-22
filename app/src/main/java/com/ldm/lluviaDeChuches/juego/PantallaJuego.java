@@ -22,6 +22,11 @@ public class PantallaJuego extends Pantalla {
     String puntuacion = "0";
     private boolean modoExtremo;
 
+    // Variables para la mira
+    private int miraX = -1;
+    private int miraY = -1;
+    private boolean mostrarMira = false;
+
     public PantallaJuego(Juego juego, boolean modoExtremo) {
         super(juego);
         this.modoExtremo = modoExtremo;
@@ -50,20 +55,34 @@ public class PantallaJuego extends Pantalla {
     }
 
     private void updateRunning(List<TouchEvent> touchEvents, float deltaTime) {
+        // Actualizar posición de la mira con el movimiento del dedo
         for (TouchEvent event : touchEvents) {
+            if (event.type == TouchEvent.TOUCH_DOWN || event.type == TouchEvent.TOUCH_DRAGGED) {
+                // Mostrar mira mientras se mantiene presionado
+                if (event.y >= 64) { // No mostrar mira sobre el botón de pausa
+                    mostrarMira = true;
+                    miraX = event.x;
+                    miraY = event.y;
+                }
+            }
+
             if (event.type == TouchEvent.TOUCH_UP) {
                 // Botón de pausa
                 if (event.x < 64 && event.y < 64) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
                     estado = EstadoJuego.Pausado;
+                    mostrarMira = false;
                     return;
                 }
 
-                // Disparar a objetivos (solo si no es el botón de pausa)
+                // Disparar a objetivos
                 if (event.y >= 64) {
                     mundo.dispararAObjetivo(event.x, event.y);
                 }
+
+                // Ocultar mira al soltar
+                mostrarMira = false;
             }
         }
 
@@ -123,6 +142,11 @@ public class PantallaJuego extends Pantalla {
             g.drawPixmap(Assets.fondo, 0, 0);
             drawWorld(mundo);
 
+            // Dibujar mira si está activa
+            if (mostrarMira && estado == EstadoJuego.Ejecutandose) {
+                dibujarMira(g, miraX, miraY);
+            }
+
             if (estado == EstadoJuego.Preparado)
                 drawReadyUI();
             else if (estado == EstadoJuego.Ejecutandose)
@@ -139,38 +163,71 @@ public class PantallaJuego extends Pantalla {
     private void drawWorld(Mundo mundo) {
         Graficos g = juego.getGraphics();
 
-        // Dibujar los objetivos en posiciones fijas
-        for (int i = 0; i < mundo.objetivos.size(); i++) {
-            Objetivo objetivo = mundo.objetivos.get(i);
+        // Dibujar los objetivos en sus posiciones actuales (cayendo)
+        for (Objetivo objetivo : mundo.objetivos) {
             Pixmap objetivoPixmap = Assets.obtenerPixmapObjetivo(objetivo.tipo);
 
             int objetivoX = objetivo.x * 32;
-            int objetivoY = 80 + (i * 50);
+            int objetivoY = objetivo.y;
 
-            g.drawPixmap(objetivoPixmap, objetivoX, objetivoY);
+            // Solo dibujar si está visible en pantalla
+            if (objetivoY >= 64 && objetivoY < 416) {
+                g.drawPixmap(objetivoPixmap, objetivoX, objetivoY);
 
-            // Dibujar barra de tiempo restante
-            float tiempoRestante = mundo.getTiempoRestanteObjetivo(i);
-            float porcentaje = tiempoRestante / 3.0f; // 3 segundos máximo
-            int anchoBarra = (int)(32 * porcentaje);
+                // Indicador visual de proximidad al fondo
+                float porcentaje = mundo.getPorcentajeCaida(objetivo);
 
-            int colorBarra;
-            if (porcentaje > 0.6f) {
-                colorBarra = Color.GREEN;
-            } else if (porcentaje > 0.3f) {
-                colorBarra = Color.YELLOW;
-            } else {
-                colorBarra = Color.RED;
+                if (porcentaje > 0.7f) {
+                    // Dibujar aura de advertencia cuando está cerca del fondo
+                    int alpha = (int)((porcentaje - 0.7f) / 0.3f * 150);
+                    int colorAdvertencia = Color.argb(alpha, 255, 0, 0);
+                    g.drawRect(objetivoX - 2, objetivoY - 2, 36, 36, colorAdvertencia);
+                }
             }
-
-            g.drawRect(objetivoX, objetivoY - 5, anchoBarra, 3, colorBarra);
         }
 
         // Mostrar fallos restantes
         String fallosTexto = "Fallos: " + mundo.getObjetivosFallados() + "/" + mundo.getMaxFallos();
         g.drawText(fallosTexto, 10, 50, Color.WHITE, 16, false);
 
+        // Indicador de modo
+        String modoTexto = modoExtremo ? "MODO EXTREMO" : "MODO NORMAL";
+        int colorModo = modoExtremo ? Color.RED : Color.GREEN;
+        g.drawText(modoTexto, g.getWidth() - 150, 50, colorModo, 14, false);
+
         g.drawLine(0, 416, 480, 416, Color.rgb(10, 10, 80));
+    }
+
+    private void dibujarMira(Graficos g, int x, int y) {
+        int tamañoMira = 20;
+        int grosor = 2;
+        int colorMira = Color.argb(200, 255, 50, 50); // Rojo semi-transparente
+
+        // Cruz de la mira
+        // Línea horizontal
+        g.drawLine(x - tamañoMira, y, x - 5, y, colorMira);
+        g.drawLine(x + 5, y, x + tamañoMira, y, colorMira);
+
+        // Línea vertical
+        g.drawLine(x, y - tamañoMira, x, y - 5, colorMira);
+        g.drawLine(x, y + 5, x, y + tamañoMira, colorMira);
+
+        // Círculo exterior
+        int radio = 15;
+        for (int angulo = 0; angulo < 360; angulo += 5) {
+            double rad = Math.toRadians(angulo);
+            int x1 = x + (int)(radio * Math.cos(rad));
+            int y1 = y + (int)(radio * Math.sin(rad));
+
+            double rad2 = Math.toRadians(angulo + 5);
+            int x2 = x + (int)(radio * Math.cos(rad2));
+            int y2 = y + (int)(radio * Math.sin(rad2));
+
+            g.drawLine(x1, y1, x2, y2, colorMira);
+        }
+
+        // Punto central
+        g.drawRect(x - 2, y - 2, 4, 4, Color.RED);
     }
 
     private void drawReadyUI() {
