@@ -9,7 +9,6 @@ import com.ldm.lluviaDeChuches.Pixmap;
 import com.ldm.lluviaDeChuches.Pantalla;
 
 public class PantallaJuego extends Pantalla {
-    private static final int HUD_OFFSET_Y = 10; // baja todo el HUD 10 px
     private static final int HUD_HEIGHT = 35;
 
     enum EstadoJuego {
@@ -229,26 +228,13 @@ public class PantallaJuego extends Pantalla {
             }
         }
 
-        int hudTop = HUD_OFFSET_Y;
+        // HUD en la esquina inferior izquierda
+        int hudBottom = g.getHeight() - 10; // 10px desde el borde inferior
+        int hudTop = hudBottom - HUD_HEIGHT;
 
-// Fondo del header
-        g.drawRect(
-                0,
-                hudTop,
-                g.getWidth(),
-                HUD_HEIGHT,
-                Color.argb(180, 0, 0, 0)
-        );
-
-// Fallos
+        // Texto de fallos en la esquina inferior izquierda
         String fallosTexto = "Fallos: " + mundo.getObjetivosFallados() + "/" + mundo.getMaxFallos();
-        g.drawText(fallosTexto, 10, hudTop + 25, Color.WHITE, 18, false);
-
-// Modo
-        String modoTexto = modoExtremo ? "EXTREMO" : "NORMAL";
-        int colorModo = modoExtremo ? Color.rgb(255, 50, 50) : Color.rgb(100, 255, 100);
-        g.drawText(modoTexto, g.getWidth() / 2, hudTop + 25, colorModo, 18, true);
-
+        g.drawText(fallosTexto, 10, hudBottom - 5, Color.WHITE, 18, false);
     }
 
     private void dibujarMira(Graficos g, int x, int y) {

@@ -75,11 +75,11 @@ public class MainMenuScreen extends Pantalla {
         g.drawPixmap(Assets.fondo, 0, 0);
 
         int toolbarHeight = 40;
-        int toolbarColor = 0xFFD2B48C;
+        int toolbarColor = 0xFF001F3F; // Azul marino
 
         g.drawRect(0, 0, g.getWidth(), toolbarHeight, toolbarColor);
 
-        String tituloToolbar = "JUEGO DE DISPAROS";
+        String tituloToolbar = "SPACE DEFENDERS";
         int textColor = 0xFFFFFFFF;
         int textSize = 20;
         int textY = toolbarHeight / 2 + textSize / 2 - 5;

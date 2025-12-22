@@ -6,7 +6,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.ldm.lluviaDeChuches"
+        applicationId "com.ldm.spaceDefenders"
         minSdk 26
         targetSdk 34
         versionCode 1
