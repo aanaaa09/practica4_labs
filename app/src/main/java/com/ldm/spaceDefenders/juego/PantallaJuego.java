@@ -27,6 +27,7 @@ public class PantallaJuego extends Pantalla {
     int antiguaPuntuacion = 0;
     String puntuacion = "0";
     private boolean modoExtremo;
+    private boolean puntuacionGuardada = false; // Nueva variable para controlar si ya se guardó
 
     // Variables para la mira
     private int miraX = -1;
@@ -98,6 +99,8 @@ public class PantallaJuego extends Pantalla {
             if (Configuraciones.sonidoHabilitado)
                 Assets.error.play(1);
             estado = EstadoJuego.FinJuego;
+            // Guardar puntuación cuando el juego termina
+            guardarPuntuacion();
         }
 
         if (antiguaPuntuacion != mundo.puntuacion) {
@@ -127,10 +130,6 @@ public class PantallaJuego extends Pantalla {
     }
 
     private void updateGameOver(List<TouchEvent> touchEvents) {
-        if (estado != EstadoJuego.FinJuego) {
-            guardarPuntuacion();
-        }
-
         for (TouchEvent event : touchEvents) {
             if (event.type == TouchEvent.TOUCH_UP) {
                 if (event.x >= 128 && event.x <= 192 &&
@@ -143,7 +142,11 @@ public class PantallaJuego extends Pantalla {
             }
         }
     }
+
     private void guardarPuntuacion() {
+        // Solo guardar una vez
+        if (puntuacionGuardada) return;
+
         if (!SesionUsuario.haySesionActiva()) return;
 
         AdminSQLiteOpenHelper admin = new AdminSQLiteOpenHelper((AndroidJuego) juego);
@@ -154,8 +157,15 @@ public class PantallaJuego extends Pantalla {
         valores.put(AdminSQLiteOpenHelper.COLUMN_PUNT_PUNTOS, mundo.puntuacion);
         valores.put(AdminSQLiteOpenHelper.COLUMN_PUNT_MODO, modoExtremo ? "extremo" : "normal");
 
-        db.insert(AdminSQLiteOpenHelper.TABLE_PUNTUACIONES, null, valores);
+        long resultado = db.insert(AdminSQLiteOpenHelper.TABLE_PUNTUACIONES, null, valores);
         db.close();
+
+        if (resultado != -1) {
+            puntuacionGuardada = true; // Marcar como guardada
+            System.out.println("Puntuación guardada correctamente: " + mundo.puntuacion);
+        } else {
+            System.err.println("Error al guardar puntuación");
+        }
     }
 
     @Override
@@ -309,7 +319,6 @@ public class PantallaJuego extends Pantalla {
         int y = 416 - Assets.menupausa.getHeight();
 
         g.drawPixmap(Assets.menupausa, x, y);
-        g.drawLine(0, 416, 480, 416, Color.BLACK);
     }
 
 
@@ -317,7 +326,6 @@ public class PantallaJuego extends Pantalla {
         Graficos g = juego.getGraphics();
         g.drawPixmap(Assets.finjuego, 36, 100);
         g.drawPixmap(Assets.botones, 128, 200, 5, 128, 66, 66);
-        g.drawLine(0, 416, 480, 416, Color.BLACK);
     }
 
     @Override

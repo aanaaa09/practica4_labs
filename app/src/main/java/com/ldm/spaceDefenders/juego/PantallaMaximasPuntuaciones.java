@@ -28,23 +28,33 @@ public class PantallaMaximasPuntuaciones extends Pantalla {
     }
 
     private void cargarPuntuacionesUsuario() {
+        lineas.clear(); // Limpiar líneas anteriores
+
         if (!SesionUsuario.haySesionActiva()) {
             lineas.add("No hay sesion activa");
             return;
         }
+
+        System.out.println("Buscando puntuaciones para: " + SesionUsuario.emailActual);
 
         SQLiteDatabase db = admin.getReadableDatabase();
 
         // Obtener las 5 mejores puntuaciones del usuario
         Cursor cursor = db.query(
                 AdminSQLiteOpenHelper.TABLE_PUNTUACIONES,
-                new String[]{AdminSQLiteOpenHelper.COLUMN_PUNT_PUNTOS, AdminSQLiteOpenHelper.COLUMN_PUNT_MODO},
+                new String[]{
+                        AdminSQLiteOpenHelper.COLUMN_PUNT_PUNTOS,
+                        AdminSQLiteOpenHelper.COLUMN_PUNT_MODO
+                },
                 AdminSQLiteOpenHelper.COLUMN_PUNT_EMAIL + "=?",
                 new String[]{SesionUsuario.emailActual},
-                null, null,
+                null,
+                null,
                 AdminSQLiteOpenHelper.COLUMN_PUNT_PUNTOS + " DESC",
                 "5"
         );
+
+        System.out.println("Número de resultados encontrados: " + cursor.getCount());
 
         int posicion = 1;
         if (cursor.moveToFirst()) {
@@ -53,11 +63,14 @@ public class PantallaMaximasPuntuaciones extends Pantalla {
                 String modo = cursor.getString(1);
                 String modoTexto = modo.equals("extremo") ? "E" : "N";
 
-                lineas.add(posicion + ". " + puntos + " pts (" + modoTexto + ")");
+                String lineaPuntuacion = posicion + ". " + puntos + " pts (" + modoTexto + ")";
+                lineas.add(lineaPuntuacion);
+                System.out.println("Puntuación añadida: " + lineaPuntuacion);
                 posicion++;
             } while (cursor.moveToNext());
         } else {
             lineas.add("Sin partidas jugadas");
+            System.out.println("No se encontraron partidas");
         }
 
         cursor.close();

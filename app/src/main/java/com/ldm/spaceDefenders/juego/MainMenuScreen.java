@@ -31,15 +31,6 @@ public class MainMenuScreen extends Pantalla {
                         Assets.clic.play(1);
                 }
 
-                // Botón Cerrar Sesión (esquina superior derecha)
-                if (inBounds(event, g.getWidth() - 120, 5, 115, 30)) {
-                    if (Configuraciones.sonidoHabilitado)
-                        Assets.clic.play(1);
-                    SesionUsuario.cerrarSesion();
-                    juego.setScreen(new PantallaLoginRegistro(juego));
-                    return;
-                }
-
                 // Modo Normal
                 if (inBounds(event, 50 + 16, 270, 205, 31)) {
                     juego.setScreen(new PantallaJuego(juego, false));
@@ -72,6 +63,17 @@ public class MainMenuScreen extends Pantalla {
                         Assets.clic.play(1);
                     return;
                 }
+
+                // Botón Cerrar Sesión (centrado debajo de ayuda)
+                int botonCerrarX = (g.getWidth() - 150) / 2; // Centrado
+                int botonCerrarY = 280 + 70 + 50; // Debajo de ayuda
+                if (inBounds(event, botonCerrarX, botonCerrarY, 150, 35)) {
+                    if (Configuraciones.sonidoHabilitado)
+                        Assets.clic.play(1);
+                    SesionUsuario.cerrarSesion();
+                    juego.setScreen(new PantallaLoginRegistro(juego));
+                    return;
+                }
             }
         }
     }
@@ -87,30 +89,20 @@ public class MainMenuScreen extends Pantalla {
 
         g.drawPixmap(Assets.fondo, 0, 0);
 
-        int toolbarHeight = 40;
-        int toolbarColor = 0xFF001F3F; // Azul marino
-
-        g.drawRect(0, 0, g.getWidth(), toolbarHeight, toolbarColor);
-
-        String tituloToolbar = "SPACE DEFENDERS";
-        int textColor = 0xFFFFFFFF;
-        int textSize = 20;
-        int textY = toolbarHeight / 2 + textSize / 2 - 5;
-
-        g.drawText(tituloToolbar, g.getWidth() / 2, textY, textColor, textSize, true);
-
-        // Mostrar nombre del usuario en la esquina superior izquierda
-        if (SesionUsuario.haySesionActiva()) {
-            g.drawText("Hola, " + SesionUsuario.nombreActual, 10, 60, Color.YELLOW, 14, false);
-
-            // Botón cerrar sesión (esquina superior derecha)
-            g.drawRect(g.getWidth() - 120, 5, 115, 30, Color.rgb(180, 0, 0));
-            g.drawText("Cerrar Sesion", g.getWidth() - 63, 25, Color.WHITE, 12, true);
-        }
-
+        // Dibujar logo y menú
         g.drawPixmap(Assets.logo, 57, 40);
         g.drawPixmap(Assets.menu, 50, 280);
 
+        // Botón cerrar sesión centrado debajo de ayuda
+        if (SesionUsuario.haySesionActiva()) {
+            int botonCerrarX = (g.getWidth() - 150) / 2;
+            int botonCerrarY = 280 + 70 + 50;
+
+            g.drawRect(botonCerrarX, botonCerrarY, 150, 35, Color.rgb(180, 0, 0));
+            g.drawText("Cerrar Sesion", botonCerrarX + 75, botonCerrarY + 22, Color.WHITE, 14, true);
+        }
+
+        // Botón de sonido
         if (Configuraciones.sonidoHabilitado)
             g.drawPixmap(Assets.botones, 5, g.getHeight() - 70, 5, 2, 66, 64);
         else
