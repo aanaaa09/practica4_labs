@@ -66,7 +66,7 @@ public class MainMenuScreen extends Pantalla {
 
                 // Botón Cerrar Sesión (centrado debajo de ayuda)
                 int botonCerrarX = (g.getWidth() - 150) / 2; // Centrado
-                int botonCerrarY = 280 + 70 + 50; // Debajo de ayuda
+                int botonCerrarY = 280 + 70 + 90; // Debajo de ayuda
                 if (inBounds(event, botonCerrarX, botonCerrarY, 150, 35)) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
@@ -96,7 +96,7 @@ public class MainMenuScreen extends Pantalla {
         // Botón cerrar sesión centrado debajo de ayuda
         if (SesionUsuario.haySesionActiva()) {
             int botonCerrarX = (g.getWidth() - 150) / 2;
-            int botonCerrarY = 280 + 70 + 50;
+            int botonCerrarY = 280 + 70 + 90;
 
             g.drawRect(botonCerrarX, botonCerrarY, 150, 35, Color.rgb(180, 0, 0));
             g.drawText("Cerrar Sesion", botonCerrarX + 75, botonCerrarY + 22, Color.WHITE, 14, true);
