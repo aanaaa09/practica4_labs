@@ -1,9 +1,13 @@
 package com.ldm.spaceDefenders.juego;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.text.InputType;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import com.ldm.spaceDefenders.Graficos;
 import com.ldm.spaceDefenders.Input.TouchEvent;
@@ -22,7 +26,7 @@ public class PantallaLoginRegistro extends Pantalla {
 
     private AdminSQLiteOpenHelper admin;
 
-    // Campos de texto simulados (sin teclado real en este framework)
+    // Campos de texto
     private String emailInput = "";
     private String passwordInput = "";
     private String nombreInput = "";
@@ -30,13 +34,13 @@ public class PantallaLoginRegistro extends Pantalla {
     private String mensajeError = "";
     private int colorMensaje = Color.RED;
 
-    private int campoActivo = 0; // 0=email, 1=password, 2=nombre
+    private AndroidJuego androidJuego;
 
     public PantallaLoginRegistro(Juego juego) {
         super(juego);
-        // Obtener contexto de Android desde AndroidJuego
         if (juego instanceof AndroidJuego) {
-            admin = new AdminSQLiteOpenHelper((AndroidJuego) juego);
+            androidJuego = (AndroidJuego) juego;
+            admin = new AdminSQLiteOpenHelper(androidJuego);
         }
     }
 
@@ -47,8 +51,49 @@ public class PantallaLoginRegistro extends Pantalla {
         for (TouchEvent event : touchEvents) {
             if (event.type == TouchEvent.TOUCH_UP) {
 
+                // Calcular posiciones (igual que en present)
+                int inicioY = 140;
+                int alturaCampo = 35;
+                int anchoCampo = 280;
+                int xCampo = (juego.getGraphics().getWidth() - anchoCampo) / 2;
+
+                // Campo Email
+                if (inBounds(event, xCampo, inicioY, anchoCampo, alturaCampo)) {
+                    mostrarDialogoInput("Email", emailInput, InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+                            texto -> emailInput = texto);
+                    if (Configuraciones.sonidoHabilitado)
+                        Assets.clic.play(1);
+                    return;
+                }
+
+                // Campo Password
+                if (inBounds(event, xCampo, inicioY + 45, anchoCampo, alturaCampo)) {
+                    mostrarDialogoInput("Contraseña", passwordInput,
+                            InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD,
+                            texto -> passwordInput = texto);
+                    if (Configuraciones.sonidoHabilitado)
+                        Assets.clic.play(1);
+                    return;
+                }
+
+                // Campo Nombre (solo en registro)
+                if (modoActual == Modo.REGISTRO && inBounds(event, xCampo, inicioY + 90, anchoCampo, alturaCampo)) {
+                    mostrarDialogoInput("Nombre", nombreInput, InputType.TYPE_CLASS_TEXT,
+                            texto -> nombreInput = texto);
+                    if (Configuraciones.sonidoHabilitado)
+                        Assets.clic.play(1);
+                    return;
+                }
+
+                // Botones
+                int botonY = modoActual == Modo.REGISTRO ? 310 : 280;
+                int anchoBoton = 120;
+                int espacioEntreBotones = 20;
+                int xBoton1 = (juego.getGraphics().getWidth() / 2) - anchoBoton - (espacioEntreBotones / 2);
+                int xBoton2 = (juego.getGraphics().getWidth() / 2) + (espacioEntreBotones / 2);
+
                 // Botón cambiar modo (LOGIN ↔ REGISTRO)
-                if (inBounds(event, 20, 400, 130, 40)) {
+                if (inBounds(event, xBoton1, botonY, anchoBoton, 35)) {
                     modoActual = (modoActual == Modo.LOGIN) ? Modo.REGISTRO : Modo.LOGIN;
                     limpiarCampos();
                     if (Configuraciones.sonidoHabilitado)
@@ -57,7 +102,7 @@ public class PantallaLoginRegistro extends Pantalla {
                 }
 
                 // Botón ENTRAR / REGISTRAR
-                if (inBounds(event, 200, 400, 100, 40)) {
+                if (inBounds(event, xBoton2, botonY, anchoBoton, 35)) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
 
@@ -68,24 +113,45 @@ public class PantallaLoginRegistro extends Pantalla {
                     }
                     return;
                 }
-
-                // NOTA: En un juego real, necesitarías implementar un teclado virtual
-                // Por simplicidad, voy a crear usuarios de prueba automáticamente
-
-                // Botón "Usuario de prueba"
-                if (inBounds(event, 170, 450, 140, 30)) {
-                    crearUsuarioPrueba();
-                    return;
-                }
             }
         }
     }
 
+    private void mostrarDialogoInput(String titulo, String valorActual, int inputType, InputCallback callback) {
+        androidJuego.runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(androidJuego);
+            builder.setTitle(titulo);
+
+            final EditText input = new EditText(androidJuego);
+            input.setInputType(inputType);
+            input.setText(valorActual);
+
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT);
+            input.setLayoutParams(lp);
+
+            builder.setView(input);
+
+            builder.setPositiveButton("Aceptar", (dialog, which) -> {
+                String texto = input.getText().toString().trim();
+                callback.onInput(texto);
+            });
+
+            builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.cancel());
+
+            builder.show();
+        });
+    }
+
+    private interface InputCallback {
+        void onInput(String texto);
+    }
+
     private void realizarLogin() {
-        // Validaciones básicas
         if (emailInput.isEmpty() || passwordInput.isEmpty()) {
             mensajeError = "Completa todos los campos";
-            colorMensaje = Color.rgb(255, 165, 0); // Naranja
+            colorMensaje = Color.rgb(255, 165, 0);
             return;
         }
 
@@ -107,7 +173,6 @@ public class PantallaLoginRegistro extends Pantalla {
             cursor.close();
             db.close();
 
-            // Login exitoso - ir al menú con datos del usuario
             SesionUsuario.emailActual = email;
             SesionUsuario.nombreActual = nombre;
 
@@ -129,7 +194,6 @@ public class PantallaLoginRegistro extends Pantalla {
 
         SQLiteDatabase db = admin.getWritableDatabase();
 
-        // Verificar si el email ya existe
         Cursor cursor = db.query(
                 AdminSQLiteOpenHelper.TABLE_USUARIOS,
                 new String[]{AdminSQLiteOpenHelper.COLUMN_EMAIL},
@@ -147,7 +211,6 @@ public class PantallaLoginRegistro extends Pantalla {
         }
         cursor.close();
 
-        // Insertar nuevo usuario
         ContentValues valores = new ContentValues();
         valores.put(AdminSQLiteOpenHelper.COLUMN_EMAIL, emailInput);
         valores.put(AdminSQLiteOpenHelper.COLUMN_PASSWORD, hashPassword(passwordInput));
@@ -163,7 +226,6 @@ public class PantallaLoginRegistro extends Pantalla {
             SesionUsuario.emailActual = emailInput;
             SesionUsuario.nombreActual = nombreInput;
 
-            // Ir al menú después de 1 segundo
             new android.os.Handler().postDelayed(() -> {
                 juego.setScreen(new MainMenuScreen(juego));
             }, 1000);
@@ -171,15 +233,6 @@ public class PantallaLoginRegistro extends Pantalla {
             mensajeError = "Error al crear cuenta";
             colorMensaje = Color.RED;
         }
-    }
-
-    private void crearUsuarioPrueba() {
-        // Usuario de prueba para testing
-        emailInput = "test@space.com";
-        passwordInput = "123456";
-        nombreInput = "Piloto Test";
-
-        realizarRegistro();
     }
 
     private String hashPassword(String password) {
@@ -216,42 +269,60 @@ public class PantallaLoginRegistro extends Pantalla {
     public void present(float deltaTime) {
         Graficos g = juego.getGraphics();
 
-        // Fondo
         g.drawPixmap(Assets.fondo, 0, 0);
 
-        // Título
+        // Título más pequeño y elegante
         String titulo = (modoActual == Modo.LOGIN) ? "INICIAR SESION" : "CREAR CUENTA";
-        g.drawText(titulo, g.getWidth() / 2, 80, Color.WHITE, 24, true);
+        g.drawText(titulo, g.getWidth() / 2, 100, Color.rgb(255, 215, 0), 18, true);
 
-        // Información de campos (simulado)
-        g.drawText("Email: " + emailInput, 50, 150, Color.WHITE, 18, false);
-        g.drawText("Password: " + ocultarPassword(passwordInput), 50, 200, Color.WHITE, 18, false);
+        // Espaciado y tamaño ajustados
+        int inicioY = 140;
+        int alturaCampo = 35;
+        int anchoCampo = 280;
+        int xCampo = (g.getWidth() - anchoCampo) / 2;
 
+        // Campo Email (con borde más bonito)
+        g.drawRect(xCampo, inicioY, anchoCampo, alturaCampo, Color.rgb(40, 40, 60));
+        String emailTexto = emailInput.isEmpty() ? "Email" : emailInput;
+        g.drawText(emailTexto, xCampo + 10, inicioY + 22,
+                emailInput.isEmpty() ? Color.rgb(150, 150, 150) : Color.WHITE, 14, false);
+
+        // Campo Password
+        g.drawRect(xCampo, inicioY + 45, anchoCampo, alturaCampo, Color.rgb(40, 40, 60));
+        String passTexto = passwordInput.isEmpty() ? "Contraseña" : ocultarPassword(passwordInput);
+        g.drawText(passTexto, xCampo + 10, inicioY + 67,
+                passwordInput.isEmpty() ? Color.rgb(150, 150, 150) : Color.WHITE, 14, false);
+
+        // Campo Nombre (solo en registro)
         if (modoActual == Modo.REGISTRO) {
-            g.drawText("Nombre: " + nombreInput, 50, 250, Color.WHITE, 18, false);
+            g.drawRect(xCampo, inicioY + 90, anchoCampo, alturaCampo, Color.rgb(40, 40, 60));
+            String nombreTexto = nombreInput.isEmpty() ? "Nombre" : nombreInput;
+            g.drawText(nombreTexto, xCampo + 10, inicioY + 112,
+                    nombreInput.isEmpty() ? Color.rgb(150, 150, 150) : Color.WHITE, 14, false);
         }
 
         // Mensaje de error/éxito
         if (!mensajeError.isEmpty()) {
-            g.drawText(mensajeError, g.getWidth() / 2, 320, colorMensaje, 16, true);
+            int mensajeY = modoActual == Modo.REGISTRO ? 280 : 250;
+            g.drawText(mensajeError, g.getWidth() / 2, mensajeY, colorMensaje, 13, true);
         }
 
-        // Botones
-        String textoBotonCambio = (modoActual == Modo.LOGIN) ? "Registrarse" : "Ya tengo cuenta";
-        g.drawRect(20, 400, 130, 40, Color.DKGRAY);
-        g.drawText(textoBotonCambio, 85, 425, Color.WHITE, 14, true);
+        // Botones más bonitos y centrados
+        int botonY = modoActual == Modo.REGISTRO ? 310 : 280;
+        int anchoBoton = 120;
+        int espacioEntreBotones = 20;
+        int xBoton1 = (g.getWidth() / 2) - anchoBoton - (espacioEntreBotones / 2);
+        int xBoton2 = (g.getWidth() / 2) + (espacioEntreBotones / 2);
 
+        // Botón izquierdo (cambiar modo)
+        String textoBotonCambio = (modoActual == Modo.LOGIN) ? "Registrarse" : "Iniciar Sesión";
+        g.drawRect(xBoton1, botonY, anchoBoton, 35, Color.rgb(60, 60, 80));
+        g.drawText(textoBotonCambio, xBoton1 + (anchoBoton / 2), botonY + 22, Color.WHITE, 12, true);
+
+        // Botón derecho (acción principal)
         String textoBotonAccion = (modoActual == Modo.LOGIN) ? "ENTRAR" : "REGISTRAR";
-        g.drawRect(200, 400, 100, 40, Color.rgb(0, 150, 0));
-        g.drawText(textoBotonAccion, 250, 425, Color.WHITE, 16, true);
-
-        // Botón usuario de prueba (solo para testing)
-        g.drawRect(170, 450, 140, 30, Color.rgb(100, 100, 255));
-        g.drawText("Usuario Prueba", 240, 470, Color.WHITE, 12, true);
-
-        // Nota importante
-        g.drawText("NOTA: Sistema simplificado - Click en 'Usuario Prueba'",
-                g.getWidth() / 2, g.getHeight() - 20, Color.YELLOW, 12, true);
+        g.drawRect(xBoton2, botonY, anchoBoton, 35, Color.rgb(0, 120, 220));
+        g.drawText(textoBotonAccion, xBoton2 + (anchoBoton / 2), botonY + 22, Color.WHITE, 13, true);
     }
 
     private String ocultarPassword(String password) {

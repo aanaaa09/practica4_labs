@@ -2,6 +2,8 @@ package com.ldm.spaceDefenders.juego;
 
 import java.util.List;
 
+import android.graphics.Color;
+
 import com.ldm.spaceDefenders.Juego;
 import com.ldm.spaceDefenders.Graficos;
 import com.ldm.spaceDefenders.Input.TouchEvent;
@@ -22,11 +24,22 @@ public class MainMenuScreen extends Pantalla {
         for (int i = 0; i < len; i++) {
             TouchEvent event = touchEvents.get(i);
             if (event.type == TouchEvent.TOUCH_UP) {
+                // Botón sonido
                 if (inBounds(event, 0, g.getHeight() - 64, 64, 64)) {
                     Configuraciones.sonidoHabilitado = !Configuraciones.sonidoHabilitado;
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
                 }
+
+                // Botón Cerrar Sesión (esquina superior derecha)
+                if (inBounds(event, g.getWidth() - 120, 5, 115, 30)) {
+                    if (Configuraciones.sonidoHabilitado)
+                        Assets.clic.play(1);
+                    SesionUsuario.cerrarSesion();
+                    juego.setScreen(new PantallaLoginRegistro(juego));
+                    return;
+                }
+
                 // Modo Normal
                 if (inBounds(event, 50 + 16, 270, 205, 31)) {
                     juego.setScreen(new PantallaJuego(juego, false));
@@ -59,8 +72,6 @@ public class MainMenuScreen extends Pantalla {
                         Assets.clic.play(1);
                     return;
                 }
-
-
             }
         }
     }
@@ -87,6 +98,15 @@ public class MainMenuScreen extends Pantalla {
         int textY = toolbarHeight / 2 + textSize / 2 - 5;
 
         g.drawText(tituloToolbar, g.getWidth() / 2, textY, textColor, textSize, true);
+
+        // Mostrar nombre del usuario en la esquina superior izquierda
+        if (SesionUsuario.haySesionActiva()) {
+            g.drawText("Hola, " + SesionUsuario.nombreActual, 10, 60, Color.YELLOW, 14, false);
+
+            // Botón cerrar sesión (esquina superior derecha)
+            g.drawRect(g.getWidth() - 120, 5, 115, 30, Color.rgb(180, 0, 0));
+            g.drawText("Cerrar Sesion", g.getWidth() - 63, 25, Color.WHITE, 12, true);
+        }
 
         g.drawPixmap(Assets.logo, 57, 40);
         g.drawPixmap(Assets.menu, 50, 280);
