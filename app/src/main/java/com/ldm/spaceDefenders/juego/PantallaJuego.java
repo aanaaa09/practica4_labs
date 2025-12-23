@@ -1,12 +1,16 @@
 package com.ldm.spaceDefenders.juego;
 
 import java.util.List;
+
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import com.ldm.spaceDefenders.Juego;
 import com.ldm.spaceDefenders.Graficos;
 import com.ldm.spaceDefenders.Input.TouchEvent;
 import com.ldm.spaceDefenders.Pixmap;
 import com.ldm.spaceDefenders.Pantalla;
+import com.ldm.spaceDefenders.androidimpl.AndroidJuego;
 
 public class PantallaJuego extends Pantalla {
     private static final int HUD_HEIGHT = 35;
@@ -123,6 +127,10 @@ public class PantallaJuego extends Pantalla {
     }
 
     private void updateGameOver(List<TouchEvent> touchEvents) {
+        if (estado != EstadoJuego.FinJuego) {
+            guardarPuntuacion();
+        }
+
         for (TouchEvent event : touchEvents) {
             if (event.type == TouchEvent.TOUCH_UP) {
                 if (event.x >= 128 && event.x <= 192 &&
@@ -134,6 +142,20 @@ public class PantallaJuego extends Pantalla {
                 }
             }
         }
+    }
+    private void guardarPuntuacion() {
+        if (!SesionUsuario.haySesionActiva()) return;
+
+        AdminSQLiteOpenHelper admin = new AdminSQLiteOpenHelper((AndroidJuego) juego);
+        SQLiteDatabase db = admin.getWritableDatabase();
+
+        ContentValues valores = new ContentValues();
+        valores.put(AdminSQLiteOpenHelper.COLUMN_PUNT_EMAIL, SesionUsuario.emailActual);
+        valores.put(AdminSQLiteOpenHelper.COLUMN_PUNT_PUNTOS, mundo.puntuacion);
+        valores.put(AdminSQLiteOpenHelper.COLUMN_PUNT_MODO, modoExtremo ? "extremo" : "normal");
+
+        db.insert(AdminSQLiteOpenHelper.TABLE_PUNTUACIONES, null, valores);
+        db.close();
     }
 
     @Override
@@ -310,4 +332,5 @@ public class PantallaJuego extends Pantalla {
 
     @Override
     public void dispose() {}
+
 }
