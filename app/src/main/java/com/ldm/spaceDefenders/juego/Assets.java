@@ -17,9 +17,6 @@ public class Assets {
     public static Pixmap preparadoN;
     public static Pixmap menupausa;
     public static Pixmap finjuego;
-    public static Pixmap jugador;
-    public static Pixmap aura;
-    public static Pixmap escudo;
     public static Pixmap objetivo1;
     public static Pixmap objetivo2;
     public static Pixmap objetivo3;
@@ -38,8 +35,6 @@ public class Assets {
                 return Assets.objetivo2;
             case Objetivo.TIPO_3:
                 return Assets.objetivo3;
-            case Objetivo.TIPO_4:
-                return Assets.escudo;
             case Objetivo.TIPO_ESPECIAL:
                 return Assets.objetivoEspecial;
             default:
