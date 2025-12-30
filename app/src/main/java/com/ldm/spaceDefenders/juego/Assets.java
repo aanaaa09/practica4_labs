@@ -43,7 +43,7 @@ public class Assets {
             case Objetivo.TIPO_ESPECIAL:
                 return Assets.objetivoEspecial;
             default:
-                return null;
+                return Assets.objetivo1;
         }
     }
 

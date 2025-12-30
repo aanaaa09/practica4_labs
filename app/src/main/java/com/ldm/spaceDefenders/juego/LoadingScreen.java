@@ -26,13 +26,12 @@ public class LoadingScreen extends Pantalla{
         Assets.preparadoE = g.newPixmap("preparadoE.png", PixmapFormat.ARGB4444);
         Assets.menupausa = g.newPixmap("menupausa.png", PixmapFormat.ARGB4444);
         Assets.finjuego = g.newPixmap("finjuego.png", PixmapFormat.ARGB4444);
-        Assets.jugador = g.newPixmap("nino.png", PixmapFormat.ARGB4444);
-        Assets.aura = g.newPixmap("aura.png", PixmapFormat.ARGB4444);
-        Assets.objetivoEspecial = g.newPixmap("mosca.png", PixmapFormat.ARGB4444);
-        Assets.escudo = g.newPixmap("escudo.png", PixmapFormat.ARGB4444);
-        Assets.objetivo1 = g.newPixmap("caramelo.png", PixmapFormat.ARGB4444);
-        Assets.objetivo2 = g.newPixmap("piruleta.png", PixmapFormat.ARGB4444);
-        Assets.objetivo3 = g.newPixmap("copa.png", PixmapFormat.ARGB4444);
+
+       //objetivos
+        Assets.objetivoEspecial = g.newPixmap("objetivoEspecial.png", PixmapFormat.ARGB4444);
+        Assets.objetivo1 = g.newPixmap("objetivo1.png", PixmapFormat.ARGB4444);
+        Assets.objetivo2 = g.newPixmap("objetivo2.png", PixmapFormat.ARGB4444);
+        Assets.objetivo3 = g.newPixmap("objetivo3.png", PixmapFormat.ARGB4444);
 
         // Sonidos con nombres genéricos
         Assets.clic = juego.getAudio().nuevoSonido("clic.ogg");
