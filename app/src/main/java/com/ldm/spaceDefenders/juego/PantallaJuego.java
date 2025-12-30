@@ -13,7 +13,6 @@ import com.ldm.spaceDefenders.Pantalla;
 import com.ldm.spaceDefenders.androidimpl.AndroidJuego;
 
 public class PantallaJuego extends Pantalla {
-    private static final int HUD_HEIGHT = 35;
 
     enum EstadoJuego {
         Preparado,
@@ -26,7 +25,7 @@ public class PantallaJuego extends Pantalla {
     Mundo mundo;
     int antiguaPuntuacion = 0;
     String puntuacion = "0";
-    private boolean modoExtremo;
+    private final boolean modoExtremo;
     private boolean puntuacionGuardada = false;
 
     // Variables para la mira
@@ -237,14 +236,14 @@ public class PantallaJuego extends Pantalla {
     }
 
     private void dibujarMira(Graficos g, int x, int y) {
-        int tamañoMira = 20;
+        int tamanoMira = 20;
         int colorMira = Color.argb(200, 255, 50, 50);
 
         // Cruz de la mira
-        g.drawLine(x - tamañoMira, y, x - 5, y, colorMira);
-        g.drawLine(x + 5, y, x + tamañoMira, y, colorMira);
-        g.drawLine(x, y - tamañoMira, x, y - 5, colorMira);
-        g.drawLine(x, y + 5, x, y + tamañoMira, colorMira);
+        g.drawLine(x - tamanoMira, y, x - 5, y, colorMira);
+        g.drawLine(x + 5, y, x + tamanoMira, y, colorMira);
+        g.drawLine(x, y - tamanoMira, x, y - 5, colorMira);
+        g.drawLine(x, y + 5, x, y + tamanoMira, colorMira);
 
         // Círculo exterior
         int radio = 15;
