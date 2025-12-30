@@ -27,7 +27,7 @@ public class PantallaJuego extends Pantalla {
     int antiguaPuntuacion = 0;
     String puntuacion = "0";
     private boolean modoExtremo;
-    private boolean puntuacionGuardada = false; // Nueva variable para controlar si ya se guardó
+    private boolean puntuacionGuardada = false;
 
     // Variables para la mira
     private int miraX = -1;
@@ -62,11 +62,9 @@ public class PantallaJuego extends Pantalla {
     }
 
     private void updateRunning(List<TouchEvent> touchEvents, float deltaTime) {
-        // Actualizar posición de la mira con el movimiento del dedo
         for (TouchEvent event : touchEvents) {
             if (event.type == TouchEvent.TOUCH_DOWN || event.type == TouchEvent.TOUCH_DRAGGED) {
-                // Mostrar mira mientras se mantiene presionado
-                if (event.y >= 64) { // No mostrar mira sobre el botón de pausa
+                if (event.y >= 64) {
                     mostrarMira = true;
                     miraX = event.x;
                     miraY = event.y;
@@ -74,7 +72,6 @@ public class PantallaJuego extends Pantalla {
             }
 
             if (event.type == TouchEvent.TOUCH_UP) {
-                // Botón de pausa
                 if (event.x < 64 && event.y < 64) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
@@ -83,12 +80,10 @@ public class PantallaJuego extends Pantalla {
                     return;
                 }
 
-                // Disparar a objetivos
                 if (event.y >= 64) {
                     mundo.dispararAObjetivo(event.x, event.y);
                 }
 
-                // Ocultar mira al soltar
                 mostrarMira = false;
             }
         }
@@ -99,7 +94,6 @@ public class PantallaJuego extends Pantalla {
             if (Configuraciones.sonidoHabilitado)
                 Assets.error.play(1);
             estado = EstadoJuego.FinJuego;
-            // Guardar puntuación cuando el juego termina
             guardarPuntuacion();
         }
 
@@ -112,14 +106,22 @@ public class PantallaJuego extends Pantalla {
     private void updatePaused(List<TouchEvent> touchEvents) {
         for (TouchEvent event : touchEvents) {
             if (event.type == TouchEvent.TOUCH_UP) {
-                if (event.x > 55 && event.x <= 260 && event.y > 115 && event.y <= 150) {
+                // Calcular posición centrada del menú de pausa
+                int menuX = (juego.getGraphics().getWidth() - Assets.menupausa.getWidth()) / 2;
+                int menuY = (juego.getGraphics().getHeight() - Assets.menupausa.getHeight()) / 2;
+
+                // Botón Reanudar (ajustar según las coordenadas dentro del asset)
+                // Asumiendo que el botón está en la parte superior del asset
+                if (inBounds(event, menuX + 55, menuY + 35, 205, 31)) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
                     estado = EstadoJuego.Ejecutandose;
                     return;
                 }
 
-                if (event.x > 100 && event.x <= 235 && event.y > 190 && event.y <= 220) {
+                // Botón Menú Principal (ajustar según las coordenadas dentro del asset)
+                // Asumiendo que el botón está debajo del de reanudar
+                if (inBounds(event, menuX + 50, menuY + 90, 222, 23)) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
                     juego.setScreen(new MainMenuScreen(juego));
@@ -127,6 +129,11 @@ public class PantallaJuego extends Pantalla {
                 }
             }
         }
+    }
+
+    private boolean inBounds(TouchEvent event, int x, int y, int width, int height) {
+        return event.x >= x && event.x <= x + width &&
+                event.y >= y && event.y <= y + height;
     }
 
     private void updateGameOver(List<TouchEvent> touchEvents) {
@@ -144,7 +151,6 @@ public class PantallaJuego extends Pantalla {
     }
 
     private void guardarPuntuacion() {
-        // Solo guardar una vez
         if (puntuacionGuardada) return;
 
         if (!SesionUsuario.haySesionActiva()) return;
@@ -161,7 +167,7 @@ public class PantallaJuego extends Pantalla {
         db.close();
 
         if (resultado != -1) {
-            puntuacionGuardada = true; // Marcar como guardada
+            puntuacionGuardada = true;
             System.out.println("Puntuación guardada correctamente: " + mundo.puntuacion);
         } else {
             System.err.println("Error al guardar puntuación");
@@ -176,7 +182,6 @@ public class PantallaJuego extends Pantalla {
             g.drawPixmap(Assets.fondo, 0, 0);
             drawWorld(mundo);
 
-            // Dibujar mira si está activa
             if (mostrarMira && estado == EstadoJuego.Ejecutandose) {
                 dibujarMira(g, miraX, miraY);
             }
@@ -190,69 +195,72 @@ public class PantallaJuego extends Pantalla {
             else if (estado == EstadoJuego.FinJuego)
                 drawGameOverUI();
 
-            // Puntuación en la esquina superior derecha, en NEGRITA y más grande
+            // Puntuación en la esquina superior derecha
             drawPuntuacionNegrita(g, puntuacion);
         }
     }
 
     private void drawPuntuacionNegrita(Graficos g, String puntos) {
-        // Calcular posición en esquina superior derecha
-        int anchoPuntos = puntos.length() * 28; // Cada número ocupa ~28px
-        int x = g.getWidth() - anchoPuntos - 10; // 10px de margen derecho
-        int y = 20; // Cerca del borde superior
+        // Calcular ancho real según los dígitos
+        int anchoTotal = 0;
+        for (int i = 0; i < puntos.length(); i++) {
+            char character = puntos.charAt(i);
+            if (character == '.') {
+                anchoTotal += 15;
+            } else {
+                anchoTotal += 32;
+            }
+        }
 
-        // Dibujar sombra/contorno para efecto negrita (dibuja 4 veces desplazado)
+        int x = g.getWidth() - anchoTotal - 10;
+        int y = 20;
+
+        // Dibujar sombra para efecto negrita
         int colorSombra = Color.BLACK;
-        drawText(g, puntos, x + 1, y + 1, colorSombra);
-        drawText(g, puntos, x - 1, y + 1, colorSombra);
-        drawText(g, puntos, x + 1, y - 1, colorSombra);
-        drawText(g, puntos, x - 1, y - 1, colorSombra);
+        drawText(g, puntos, x + 2, y + 2, colorSombra);
 
         // Dibujar el texto principal en color brillante
-        drawText(g, puntos, x, y, Color.rgb(255, 215, 0)); // Dorado
+        drawText(g, puntos, x, y, Color.rgb(255, 215, 0));
     }
 
     public void drawText(Graficos g, String line, int x, int y, int color) {
-        // Dibuja texto con color personalizado usando los números del asset
+        int xActual = x;
+
         for (int i = 0; i < line.length(); i++) {
             char character = line.charAt(i);
 
-            int srcX;
-            int srcWidth;
+            if (character >= '0' && character <= '9') {
+                int digitValue = character - '0';
+                // Cada número tiene 32px de ancho en el sprite
+                int srcX = digitValue * 32;
 
-            if (character == '.') {
-                srcX = 327;
-                srcWidth = 15;
-            } else {
-                srcX = (character - '0') * 32;
-                srcWidth = 32;
+                // Dibujar el sprite del número
+                g.drawPixmap(Assets.numeros, xActual, y, srcX, 0, 32, 32);
+                xActual += 32;
+            } else if (character == '.') {
+                // El punto decimal está en la posición 327
+                g.drawPixmap(Assets.numeros, xActual, y, 327, 0, 15, 32);
+                xActual += 15;
             }
-
-            // Aquí usarías tinting si estuviera disponible, pero por ahora usa el sprite original
-            g.drawPixmap(Assets.numeros, x, y, srcX, 0, srcWidth, 32);
-            x += srcWidth;
+            // Ignora otros caracteres no válidos
         }
     }
 
     private void drawWorld(Mundo mundo) {
         Graficos g = juego.getGraphics();
 
-        // Dibujar los objetivos en sus posiciones actuales (cayendo)
         for (Objetivo objetivo : mundo.objetivos) {
             Pixmap objetivoPixmap = Assets.obtenerPixmapObjetivo(objetivo.tipo);
 
             int objetivoX = objetivo.x * 32;
             int objetivoY = objetivo.y;
 
-            // Solo dibujar si está visible en pantalla
             if (objetivoY >= 64 && objetivoY < 416) {
                 g.drawPixmap(objetivoPixmap, objetivoX, objetivoY);
 
-                // Indicador visual de proximidad al fondo
                 float porcentaje = mundo.getPorcentajeCaida(objetivo);
 
                 if (porcentaje > 0.7f) {
-                    // Dibujar aura de advertencia cuando está cerca del fondo
                     int alpha = (int)((porcentaje - 0.7f) / 0.3f * 150);
                     int colorAdvertencia = Color.argb(alpha, 255, 0, 0);
                     g.drawRect(objetivoX - 2, objetivoY - 2, 36, 36, colorAdvertencia);
@@ -260,26 +268,18 @@ public class PantallaJuego extends Pantalla {
             }
         }
 
-        // HUD en la esquina inferior izquierda
-        int hudBottom = g.getHeight() - 10; // 10px desde el borde inferior
-        int hudTop = hudBottom - HUD_HEIGHT;
-
-        // Texto de fallos en la esquina inferior izquierda
+        int hudBottom = g.getHeight() - 10;
         String fallosTexto = "Fallos: " + mundo.getObjetivosFallados() + "/" + mundo.getMaxFallos();
         g.drawText(fallosTexto, 10, hudBottom - 5, Color.WHITE, 18, false);
     }
 
     private void dibujarMira(Graficos g, int x, int y) {
         int tamañoMira = 20;
-        int grosor = 2;
-        int colorMira = Color.argb(200, 255, 50, 50); // Rojo semi-transparente
+        int colorMira = Color.argb(200, 255, 50, 50);
 
         // Cruz de la mira
-        // Línea horizontal
         g.drawLine(x - tamañoMira, y, x - 5, y, colorMira);
         g.drawLine(x + 5, y, x + tamañoMira, y, colorMira);
-
-        // Línea vertical
         g.drawLine(x, y - tamañoMira, x, y - 5, colorMira);
         g.drawLine(x, y + 5, x, y + tamañoMira, colorMira);
 
@@ -297,7 +297,6 @@ public class PantallaJuego extends Pantalla {
             g.drawLine(x1, y1, x2, y2, colorMira);
         }
 
-        // Punto central
         g.drawRect(x - 2, y - 2, 4, 4, Color.RED);
     }
 
@@ -309,18 +308,18 @@ public class PantallaJuego extends Pantalla {
 
     private void drawRunningUI() {
         Graficos g = juego.getGraphics();
-        g.drawPixmap(Assets.botones, 0, 0, 68, 128, 64, 64); // Botón de pausa
+        g.drawPixmap(Assets.botones, 0, 0, 68, 128, 64, 64);
     }
 
     private void drawPausedUI() {
         Graficos g = juego.getGraphics();
 
-        int x = 480 - Assets.menupausa.getWidth();
-        int y = 416 - Assets.menupausa.getHeight();
+        // Centrar el asset del menú de pausa
+        int x = (g.getWidth() - Assets.menupausa.getWidth()) / 2;
+        int y = (g.getHeight() - Assets.menupausa.getHeight()) / 2;
 
         g.drawPixmap(Assets.menupausa, x, y);
     }
-
 
     private void drawGameOverUI() {
         Graficos g = juego.getGraphics();
@@ -340,5 +339,4 @@ public class PantallaJuego extends Pantalla {
 
     @Override
     public void dispose() {}
-
 }
