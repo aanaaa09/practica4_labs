@@ -28,8 +28,6 @@ public class LoadingScreen extends Pantalla{
         Assets.finjuego = g.newPixmap("finjuego.png", PixmapFormat.ARGB4444);
         Assets.jugador = g.newPixmap("nino.png", PixmapFormat.ARGB4444);
         Assets.aura = g.newPixmap("aura.png", PixmapFormat.ARGB4444);
-        Assets.obstaculo1 = g.newPixmap("cactus.png", PixmapFormat.ARGB4444);
-        Assets.obstaculo2 = g.newPixmap("sombrero.png", PixmapFormat.ARGB4444);
         Assets.objetivoEspecial = g.newPixmap("mosca.png", PixmapFormat.ARGB4444);
         Assets.escudo = g.newPixmap("escudo.png", PixmapFormat.ARGB4444);
         Assets.objetivo1 = g.newPixmap("caramelo.png", PixmapFormat.ARGB4444);

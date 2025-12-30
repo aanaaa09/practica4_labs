@@ -19,8 +19,6 @@ public class Assets {
     public static Pixmap finjuego;
     public static Pixmap jugador;
     public static Pixmap aura;
-    public static Pixmap obstaculo1;
-    public static Pixmap obstaculo2;
     public static Pixmap escudo;
     public static Pixmap objetivo1;
     public static Pixmap objetivo2;
@@ -49,14 +47,4 @@ public class Assets {
         }
     }
 
-    public static Pixmap obtenerPixmapObstaculo(int tipo) {
-        switch (tipo) {
-            case 1:
-                return Assets.obstaculo1;
-            case 2:
-                return Assets.obstaculo2;
-            default:
-                return null;
-        }
-    }
 }
