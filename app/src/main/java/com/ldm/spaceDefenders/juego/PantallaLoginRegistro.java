@@ -18,6 +18,7 @@ import com.ldm.spaceDefenders.androidimpl.AndroidJuego;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class PantallaLoginRegistro extends Pantalla {
 
@@ -35,6 +36,11 @@ public class PantallaLoginRegistro extends Pantalla {
     private int colorMensaje = Color.RED;
 
     private AndroidJuego androidJuego;
+
+    // Patrón para validar emails
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+    );
 
     public PantallaLoginRegistro(Juego juego) {
         super(juego);
@@ -148,10 +154,26 @@ public class PantallaLoginRegistro extends Pantalla {
         void onInput(String texto);
     }
 
+    // MÉTODO NUEVO: Validar formato de email
+    private boolean esEmailValido(String email) {
+        if (email == null || email.isEmpty()) {
+            return false;
+        }
+        return EMAIL_PATTERN.matcher(email).matches();
+    }
+
     private void realizarLogin() {
+        // Validar que los campos no estén vacíos
         if (emailInput.isEmpty() || passwordInput.isEmpty()) {
             mensajeError = "Completa todos los campos";
             colorMensaje = Color.rgb(255, 165, 0);
+            return;
+        }
+
+        // Validar formato de email
+        if (!esEmailValido(emailInput)) {
+            mensajeError = "Email invalido (usa xxx@xxx.xxx)";
+            colorMensaje = Color.RED;
             return;
         }
 
@@ -186,14 +208,30 @@ public class PantallaLoginRegistro extends Pantalla {
     }
 
     private void realizarRegistro() {
+        // Validar que los campos no estén vacíos
         if (emailInput.isEmpty() || passwordInput.isEmpty() || nombreInput.isEmpty()) {
             mensajeError = "Completa todos los campos";
             colorMensaje = Color.rgb(255, 165, 0);
             return;
         }
 
+        // Validar formato de email
+        if (!esEmailValido(emailInput)) {
+            mensajeError = "Email invalido (usa xxx@xxx.xxx)";
+            colorMensaje = Color.RED;
+            return;
+        }
+
+        // Validar longitud mínima de contraseña
+        if (passwordInput.length() < 4) {
+            mensajeError = "Contraseña muy corta (min 4)";
+            colorMensaje = Color.RED;
+            return;
+        }
+
         SQLiteDatabase db = admin.getWritableDatabase();
 
+        // Verificar si el email ya existe
         Cursor cursor = db.query(
                 AdminSQLiteOpenHelper.TABLE_USUARIOS,
                 new String[]{AdminSQLiteOpenHelper.COLUMN_EMAIL},
@@ -211,9 +249,10 @@ public class PantallaLoginRegistro extends Pantalla {
         }
         cursor.close();
 
+        // Insertar nuevo usuario con contraseña hasheada
         ContentValues valores = new ContentValues();
         valores.put(AdminSQLiteOpenHelper.COLUMN_EMAIL, emailInput);
-        valores.put(AdminSQLiteOpenHelper.COLUMN_PASSWORD, hashPassword(passwordInput));
+        valores.put(AdminSQLiteOpenHelper.COLUMN_PASSWORD, hashPassword(passwordInput)); // SE HASHEA AQUÍ
         valores.put(AdminSQLiteOpenHelper.COLUMN_NOMBRE, nombreInput);
 
         long resultado = db.insert(AdminSQLiteOpenHelper.TABLE_USUARIOS, null, valores);
@@ -235,6 +274,7 @@ public class PantallaLoginRegistro extends Pantalla {
         }
     }
 
+    // Método que hashea la contraseña con SHA-256
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -249,6 +289,7 @@ public class PantallaLoginRegistro extends Pantalla {
 
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
+            // Si falla el hash, devolver la contraseña sin hashear (fallback)
             return password;
         }
     }

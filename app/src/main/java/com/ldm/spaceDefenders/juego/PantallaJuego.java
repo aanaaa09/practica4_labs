@@ -110,8 +110,7 @@ public class PantallaJuego extends Pantalla {
                 int menuX = (juego.getGraphics().getWidth() - Assets.menupausa.getWidth()) / 2;
                 int menuY = (juego.getGraphics().getHeight() - Assets.menupausa.getHeight()) / 2;
 
-                // Botón Reanudar (ajustar según las coordenadas dentro del asset)
-                // Asumiendo que el botón está en la parte superior del asset
+                // Botón Reanudar
                 if (inBounds(event, menuX + 55, menuY + 35, 205, 31)) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
@@ -119,8 +118,7 @@ public class PantallaJuego extends Pantalla {
                     return;
                 }
 
-                // Botón Menú Principal (ajustar según las coordenadas dentro del asset)
-                // Asumiendo que el botón está debajo del de reanudar
+                // Botón Menú Principal
                 if (inBounds(event, menuX + 50, menuY + 90, 222, 23)) {
                     if (Configuraciones.sonidoHabilitado)
                         Assets.clic.play(1);
@@ -195,55 +193,20 @@ public class PantallaJuego extends Pantalla {
             else if (estado == EstadoJuego.FinJuego)
                 drawGameOverUI();
 
-            // Puntuación en la esquina superior derecha
-            drawPuntuacionNegrita(g, puntuacion);
+            // Puntuación en la esquina superior derecha CON TEXTO NORMAL
+            drawPuntuacionTexto(g, puntuacion);
         }
     }
 
-    private void drawPuntuacionNegrita(Graficos g, String puntos) {
-        // Calcular ancho real según los dígitos
-        int anchoTotal = 0;
-        for (int i = 0; i < puntos.length(); i++) {
-            char character = puntos.charAt(i);
-            if (character == '.') {
-                anchoTotal += 15;
-            } else {
-                anchoTotal += 32;
-            }
-        }
+    // NUEVO MÉTODO: Dibuja la puntuación con texto normal en lugar de sprites
+    private void drawPuntuacionTexto(Graficos g, String puntos) {
+        // Solo el número, sin "Puntos:"
 
-        int x = g.getWidth() - anchoTotal - 10;
-        int y = 20;
+        // Sombra para dar efecto de profundidad
+        g.drawText(puntos, g.getWidth() - 15, 30, Color.argb(150, 0, 0, 0), 24, true);
 
-        // Dibujar sombra para efecto negrita
-        int colorSombra = Color.BLACK;
-        drawText(g, puntos, x + 2, y + 2, colorSombra);
-
-        // Dibujar el texto principal en color brillante
-        drawText(g, puntos, x, y, Color.rgb(255, 215, 0));
-    }
-
-    public void drawText(Graficos g, String line, int x, int y, int color) {
-        int xActual = x;
-
-        for (int i = 0; i < line.length(); i++) {
-            char character = line.charAt(i);
-
-            if (character >= '0' && character <= '9') {
-                int digitValue = character - '0';
-                // Cada número tiene 32px de ancho en el sprite
-                int srcX = digitValue * 32;
-
-                // Dibujar el sprite del número
-                g.drawPixmap(Assets.numeros, xActual, y, srcX, 0, 32, 32);
-                xActual += 32;
-            } else if (character == '.') {
-                // El punto decimal está en la posición 327
-                g.drawPixmap(Assets.numeros, xActual, y, 327, 0, 15, 32);
-                xActual += 15;
-            }
-            // Ignora otros caracteres no válidos
-        }
+        // Texto principal en color dorado brillante
+        g.drawText(puntos, g.getWidth() - 17, 28, Color.rgb(255, 215, 0), 24, true);
     }
 
     private void drawWorld(Mundo mundo) {
