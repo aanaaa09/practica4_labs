@@ -15,17 +15,17 @@ public class LoadingScreen extends Pantalla{
         Graficos g = juego.getGraphics();
         Assets.fondo = g.newPixmap("fondo.png", PixmapFormat.RGB565);
         Assets.logo = g.newPixmap("logo.png", PixmapFormat.ARGB4444);
-        Assets.menu = g.newPixmap("menu.png", PixmapFormat.ARGB4444);
+        Assets.menu = g.newPixmap("menuu.png", PixmapFormat.ARGB4444);
         Assets.botones = g.newPixmap("botones.png", PixmapFormat.ARGB4444);
-        Assets.ayuda1 = g.newPixmap("ayuda1.png", PixmapFormat.ARGB4444);
-        Assets.ayuda2 = g.newPixmap("ayuda2.png", PixmapFormat.ARGB4444);
-        Assets.ayuda3 = g.newPixmap("ayuda3.png", PixmapFormat.ARGB4444);
-        Assets.ayuda4 = g.newPixmap("ayuda4.png", PixmapFormat.ARGB4444);
-        Assets.numeros = g.newPixmap("numeros.png", PixmapFormat.ARGB4444);
-        Assets.preparadoN = g.newPixmap("preparadoN.png", PixmapFormat.ARGB4444);
-        Assets.preparadoE = g.newPixmap("preparadoE.png", PixmapFormat.ARGB4444);
-        Assets.menupausa = g.newPixmap("menupausa.png", PixmapFormat.ARGB4444);
-        Assets.finjuego = g.newPixmap("finjuego.png", PixmapFormat.ARGB4444);
+        Assets.ayuda1 = g.newPixmap("A1.png", PixmapFormat.ARGB4444);
+        Assets.ayuda2 = g.newPixmap("A2.png", PixmapFormat.ARGB4444);
+        Assets.ayuda3 = g.newPixmap("A3.png", PixmapFormat.ARGB4444);
+        Assets.ayuda4 = g.newPixmap("leyenda.png", PixmapFormat.ARGB4444);
+        Assets.numeros = g.newPixmap("nums.png", PixmapFormat.ARGB4444);
+        Assets.preparadoN = g.newPixmap("preparadoNormal.png", PixmapFormat.ARGB4444);
+        Assets.preparadoE = g.newPixmap("preparadoExtremo.png", PixmapFormat.ARGB4444);
+        Assets.menupausa = g.newPixmap("menu_pausa.png", PixmapFormat.ARGB4444);
+        Assets.finjuego = g.newPixmap("fin_juego.png", PixmapFormat.ARGB4444);
 
        //objetivos
         Assets.objetivoEspecial = g.newPixmap("objetivoEspecial.png", PixmapFormat.ARGB4444);
