@@ -111,7 +111,7 @@ public class Mundo {
             case Objetivo.TIPO_1: return 5;
             case Objetivo.TIPO_2: return 10;
             case Objetivo.TIPO_3: return 15;
-            case Objetivo.TIPO_4: return 25;
+            case Objetivo.TIPO_ESPECIAL: return 25;
             default: return 5;
         }
     }
@@ -129,7 +129,7 @@ public class Mundo {
         } else if (probabilidad < 90) {
             tipoObjetivo = Objetivo.TIPO_3;
         } else {
-            tipoObjetivo = Objetivo.TIPO_4;
+            tipoObjetivo = Objetivo.TIPO_ESPECIAL;
         }
 
         // Crear objetivo en la parte superior (y = 0)
