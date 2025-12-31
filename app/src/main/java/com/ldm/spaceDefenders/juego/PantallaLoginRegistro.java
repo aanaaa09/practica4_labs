@@ -154,7 +154,7 @@ public class PantallaLoginRegistro extends Pantalla {
         void onInput(String texto);
     }
 
-    // MÉTODO NUEVO: Validar formato de email
+    // Validar formato de email
     private boolean esEmailValido(String email) {
         if (email == null || email.isEmpty()) {
             return false;
@@ -265,9 +265,7 @@ public class PantallaLoginRegistro extends Pantalla {
             SesionUsuario.emailActual = emailInput;
             SesionUsuario.nombreActual = nombreInput;
 
-            new android.os.Handler().postDelayed(() -> {
-                juego.setScreen(new MainMenuScreen(juego));
-            }, 1000);
+            new android.os.Handler().postDelayed(() -> juego.setScreen(new MainMenuScreen(juego)), 1000);
         } else {
             mensajeError = "Error al crear cuenta";
             colorMensaje = Color.RED;
@@ -322,7 +320,7 @@ public class PantallaLoginRegistro extends Pantalla {
         int anchoCampo = 280;
         int xCampo = (g.getWidth() - anchoCampo) / 2;
 
-        // Campo Email (con borde más bonito)
+        // Campo Email
         g.drawRect(xCampo, inicioY, anchoCampo, alturaCampo, Color.rgb(40, 40, 60));
         String emailTexto = emailInput.isEmpty() ? "Email" : emailInput;
         g.drawText(emailTexto, xCampo + 10, inicioY + 22,
@@ -348,7 +346,7 @@ public class PantallaLoginRegistro extends Pantalla {
             g.drawText(mensajeError, g.getWidth() / 2, mensajeY, colorMensaje, 13, true);
         }
 
-        // Botones más bonitos y centrados
+        // Botones centrados
         int botonY = modoActual == Modo.REGISTRO ? 310 : 280;
         int anchoBoton = 120;
         int espacioEntreBotones = 20;
